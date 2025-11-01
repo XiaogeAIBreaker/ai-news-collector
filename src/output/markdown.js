@@ -81,8 +81,7 @@ export class MarkdownGenerator {
 
     return `# AI 新闻采集报告
 
-**生成时间**: ${dateStr}  
-**采集来源**: AIBase  
+**生成时间**: ${dateStr}
 **过滤方式**: LLM 智能评分`;
   }
 
@@ -111,7 +110,7 @@ export class MarkdownGenerator {
   }
 
   /**
-   * 构建新闻列表
+   * 构建新闻列表(按数据源分组)
    * @param {Array} filteredNews
    * @returns {string}
    */
@@ -122,13 +121,37 @@ export class MarkdownGenerator {
 *暂无符合过滤条件的新闻*`;
     }
 
-    const newsItems = filteredNews
-      .map((item, index) => this.buildNewsItem(item, index + 1))
-      .join('\n\n---\n\n');
+    // 按数据源分组
+    const groupedBySource = {};
+    filteredNews.forEach(item => {
+      const source = item.newsItem.source;
+      if (!groupedBySource[source]) {
+        groupedBySource[source] = [];
+      }
+      groupedBySource[source].push(item);
+    });
 
-    return `## 📰 过滤后的新闻 (按评分排序)
+    // 为每个数据源生成内容
+    const sections = [];
+    let globalIndex = 1;
 
-${newsItems}`;
+    for (const [source, items] of Object.entries(groupedBySource)) {
+      // 数据源标题
+      sections.push(`### 📡 ${source} (${items.length} 条)`);
+      sections.push('');
+
+      // 该数据源的新闻列表
+      const newsItems = items
+        .map(item => this.buildNewsItem(item, globalIndex++))
+        .join('\n\n---\n\n');
+
+      sections.push(newsItems);
+      sections.push('');
+    }
+
+    return `## 📰 过滤后的新闻 (按评分排序，按数据源分组)
+
+${sections.join('\n')}`;
   }
 
   /**
@@ -150,17 +173,40 @@ ${newsItems}`;
       minute: '2-digit'
     });
 
-    return `### ${index}. ${newsItem.title}
+    // 如果有元数据(知识星球),显示互动数据
+    let metadataSection = '';
+    if (newsItem.metadata && Object.keys(newsItem.metadata).length > 0) {
+      const meta = newsItem.metadata;
+      const metaParts = [];
 
-**评分**: ${scoreEmoji} **${item.score.toFixed(1)}** / 10.0  
-**来源**: ${newsItem.source}  
-**发布时间**: ${publishTime}  
-**链接**: [${newsItem.url}](${newsItem.url})
+      if (meta.author) {
+        metaParts.push(`**作者**: ${meta.author}`);
+      }
+      if (meta.likes !== undefined) {
+        metaParts.push(`👍 ${meta.likes}`);
+      }
+      if (meta.comments !== undefined) {
+        metaParts.push(`💬 ${meta.comments}`);
+      }
+      if (meta.views !== undefined) {
+        metaParts.push(`👀 ${meta.views}`);
+      }
 
-**摘要**:  
+      if (metaParts.length > 0) {
+        metadataSection = `\n**互动数据**: ${metaParts.join(' | ')}  `;
+      }
+    }
+
+    return `#### ${index}. ${newsItem.title}
+
+**评分**: ${scoreEmoji} **${item.score.toFixed(1)}** / 10.0
+**发布时间**: ${publishTime}  ${metadataSection}
+**链接**: [查看原文](${newsItem.url})
+
+**摘要**:
 ${newsItem.summary}
 
-**评分理由**:  
+**评分理由**:
 ${item.reason}`;
   }
 

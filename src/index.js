@@ -1,13 +1,174 @@
 #!/usr/bin/env node
 
 import 'dotenv/config';
-import { loadFilterConfig } from './config/loader.js';
+import { loadFilterConfigForSource } from './config/loader.js';
+import { getEnabledDataSources } from './config/datasources.js';
 import { AIBaseCollector } from './collectors/aibase.js';
+import { ZSXQCollector } from './collectors/zsxq.js';
 import { Orchestrator } from './services/orchestrator.js';
 import { MarkdownGenerator } from './output/markdown.js';
 import { createLogger } from './utils/logger.js';
 
 const logger = createLogger('Main');
+
+/**
+ * 创建采集器实例
+ * @param {Object} sourceConfig - 数据源配置
+ * @returns {BaseCollector|null} 采集器实例
+ */
+function createCollector(sourceConfig) {
+  const collectorMap = {
+    'AIBase': AIBaseCollector,
+    '知识星球': ZSXQCollector
+  };
+
+  const CollectorClass = collectorMap[sourceConfig.name];
+
+  if (!CollectorClass) {
+    logger.warn(`未知的数据源类型: ${sourceConfig.name}`);
+    return null;
+  }
+
+  return new CollectorClass(sourceConfig);
+}
+
+/**
+ * 从单个数据源采集新闻
+ * @param {Object} sourceConfig - 数据源配置
+ * @returns {Promise<Array>} 新闻数组
+ */
+async function collectFromSource(sourceConfig) {
+  logger.info('');
+  logger.info(`正在采集: ${sourceConfig.name}`);
+
+  try {
+    const collector = createCollector(sourceConfig);
+    if (!collector) {
+      return [];
+    }
+
+    return await collector.collect();
+  } catch (error) {
+    logger.error(`采集 ${sourceConfig.name} 时出错:`, error.message);
+    return [];
+  }
+}
+
+/**
+ * 从所有启用的数据源采集新闻
+ * @returns {Promise<Object>} 按数据源分组的新闻对象
+ */
+async function collectNewsFromAllSources() {
+  const enabledSources = getEnabledDataSources();
+  logger.info(`启用的数据源: ${enabledSources.map(s => s.name).join(', ')}`);
+
+  const newsItemsBySource = {};
+
+  for (const sourceConfig of enabledSources) {
+    const newsItems = await collectFromSource(sourceConfig);
+    newsItemsBySource[sourceConfig.name] = newsItems;
+  }
+
+  return newsItemsBySource;
+}
+
+/**
+ * 初始化统计对象
+ * @returns {Object} 统计对象
+ */
+function initializeStats() {
+  return {
+    totalNews: 0,
+    validNews: 0,
+    filteredCount: 0,
+    averageScore: 0,
+    highestScore: 0,
+    duration: 0,
+    totalTokens: 0,
+    cacheHitTokens: 0,
+    cacheHitRate: 0
+  };
+}
+
+/**
+ * 合并单个数据源的统计结果
+ * @param {Object} combinedStats - 合并的统计对象
+ * @param {Object} sourceStats - 单个数据源的统计对象
+ */
+function mergeStats(combinedStats, sourceStats) {
+  combinedStats.totalNews += sourceStats.totalNews;
+  combinedStats.validNews += sourceStats.validNews || sourceStats.totalNews;
+  combinedStats.filteredCount += sourceStats.filteredCount;
+  combinedStats.duration += sourceStats.duration;
+  combinedStats.totalTokens += sourceStats.totalTokens;
+  combinedStats.cacheHitTokens += sourceStats.cacheHitTokens || 0;
+
+  // 更新最高分
+  if (sourceStats.highestScore > combinedStats.highestScore) {
+    combinedStats.highestScore = sourceStats.highestScore;
+  }
+}
+
+/**
+ * 计算总体统计指标
+ * @param {Object} combinedStats - 合并的统计对象
+ * @param {Array} allFilteredNews - 所有过滤后的新闻
+ */
+function calculateFinalStats(combinedStats, allFilteredNews) {
+  // 计算总体平均分
+  combinedStats.averageScore = allFilteredNews.length > 0
+    ? allFilteredNews.reduce((sum, item) => sum + item.score, 0) / allFilteredNews.length
+    : 0;
+
+  // 计算过滤率
+  combinedStats.filterRate = combinedStats.totalNews > 0
+    ? (combinedStats.filteredCount / combinedStats.totalNews) * 100
+    : 0;
+
+  // 计算缓存命中率
+  combinedStats.cacheHitRate = combinedStats.totalTokens > 0
+    ? (combinedStats.cacheHitTokens / combinedStats.totalTokens) * 100
+    : 0;
+}
+
+/**
+ * 对新闻进行评分和过滤
+ * @param {Object} newsItemsBySource - 按数据源分组的新闻
+ * @returns {Promise<Object>} 包含过滤结果和统计信息的对象
+ */
+async function scoreAndFilterNews(newsItemsBySource) {
+  const orchestrator = new Orchestrator();
+  const allFilteredNews = [];
+  const combinedStats = initializeStats();
+
+  // 对每个数据源使用其专属的过滤规则
+  for (const [sourceName, newsItems] of Object.entries(newsItemsBySource)) {
+    if (newsItems.length === 0) continue;
+
+    logger.info('');
+    logger.info(`正在评分: ${sourceName} (${newsItems.length} 条)`);
+
+    // 为该数据源加载专属配置
+    const sourceRules = loadFilterConfigForSource(sourceName);
+
+    // 执行评分和过滤
+    const result = await orchestrator.execute(newsItems, sourceRules);
+
+    // 合并结果
+    allFilteredNews.push(...result.filtered);
+    mergeStats(combinedStats, result.stats);
+
+    logger.info(`  ${sourceName} 过滤后: ${result.stats.filteredCount}/${result.stats.totalNews} 条`);
+  }
+
+  // 计算总体统计指标
+  calculateFinalStats(combinedStats, allFilteredNews);
+
+  return {
+    filtered: allFilteredNews,
+    stats: combinedStats
+  };
+}
 
 /**
  * 主函数
@@ -26,33 +187,32 @@ async function main() {
       process.exit(1);
     }
 
-    // 2. 加载配置
+    // 2. 采集新闻 - 支持多数据源
     logger.info('');
-    logger.info('步骤 1/4: 加载配置文件');
-    const filterConfig = loadFilterConfig();
+    logger.info('步骤 1/3: 采集新闻');
 
-    // 3. 采集新闻
-    logger.info('');
-    logger.info('步骤 2/4: 采集新闻');
-    const collector = new AIBaseCollector();
-    const newsItems = await collector.collect();
+    const newsItemsBySource = await collectNewsFromAllSources();
 
-    if (newsItems.length === 0) {
+    // 计算总采集数
+    const totalNews = Object.values(newsItemsBySource).reduce((sum, items) => sum + items.length, 0);
+
+    if (totalNews === 0) {
       logger.warn('未采集到任何新闻,程序退出');
       process.exit(0);
     }
 
-    logger.success(`成功采集 ${newsItems.length} 条新闻`);
-
-    // 4. LLM 评分和过滤
     logger.info('');
-    logger.info('步骤 3/4: LLM 评分和过滤');
-    const orchestrator = new Orchestrator();
-    const result = await orchestrator.execute(newsItems, filterConfig);
+    logger.success(`总共采集 ${totalNews} 条新闻`);
 
-    // 5. 生成 Markdown 输出
+    // 3. LLM 评分和过滤 - 按数据源分别评分
     logger.info('');
-    logger.info('步骤 4/4: 生成 Markdown 报告');
+    logger.info('步骤 2/3: LLM 评分和过滤');
+
+    const result = await scoreAndFilterNews(newsItemsBySource);
+
+    // 4. 生成 Markdown 输出
+    logger.info('');
+    logger.info('步骤 3/3: 生成 Markdown 报告');
     const markdownGenerator = new MarkdownGenerator();
     const outputPath = await markdownGenerator.generate(
       result.filtered,

@@ -1,57 +1,93 @@
 import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// 数据源名称到配置文件名的映射
+const SOURCE_FILE_MAP = {
+  'AIBase': 'aibase',
+  '知识星球': 'zsxq'
+};
 
 /**
- * 加载过滤规则配置
- * @param {string} configPath - 配置文件路径 (相对于项目根目录)
+ * 将数据源名称转换为配置文件名
+ * @param {string} sourceName - 数据源名称
+ * @returns {string} 文件名
+ */
+function getConfigFileName(sourceName) {
+  return SOURCE_FILE_MAP[sourceName] || sourceName.toLowerCase();
+}
+
+/**
+ * 加载指定数据源的过滤规则配置
+ * @param {string} sourceName - 数据源名称 (如 'AIBase', '知识星球')
  * @returns {Object} 过滤配置对象
  */
-export function loadFilterConfig(configPath = 'config/filter-rules.json') {
+export function loadFilterConfigForSource(sourceName) {
+  const fileName = getConfigFileName(sourceName);
+  const configPath = `config/filter-rules-${fileName}.json`;
+
+  const absolutePath = join(process.cwd(), configPath);
+
   try {
-    // 构建配置文件的绝对路径
-    const absolutePath = join(process.cwd(), configPath);
-    
-    // 读取文件内容
-    const fileContent = readFileSync(absolutePath, 'utf-8');
-    
-    // 解析 JSON
-    let config;
-    try {
-      config = JSON.parse(fileContent);
-    } catch (parseError) {
-      console.error('[配置加载] JSON 格式错误');
-      console.error('错误详情:', parseError.message);
-      console.error('请检查配置文件格式是否正确');
-      process.exit(1);
-    }
-
-    // 验证配置
-    const validation = validateFilterConfig(config);
-    if (!validation.valid) {
-      console.error('[配置加载] 配置验证失败');
-      validation.errors.forEach(err => console.error('  - ' + err));
-      process.exit(1);
-    }
-
-    console.log('[配置加载] 配置加载成功');
-    console.log(`  正面样例: ${config.positiveExamples.length} 个`);
-    console.log(`  反面样例: ${config.negativeExamples.length} 个`);
-    console.log(`  关键词: ${config.keywords ? config.keywords.length : 0} 个`);
-
+    const config = loadAndParseConfig(absolutePath, sourceName);
+    validateAndLogConfig(config, sourceName);
     return config;
   } catch (error) {
-    if (error.code === 'ENOENT') {
-      console.error(`[配置加载] 配置文件不存在: ${configPath}`);
-      console.error('请创建配置文件,或参考 config/filter-rules.json 示例');
-    } else {
-      console.error('[配置加载] 加载配置文件失败:', error.message);
-    }
+    handleConfigError(error, configPath, sourceName);
+  }
+}
+
+/**
+ * 加载并解析配置文件
+ * @param {string} absolutePath - 配置文件绝对路径
+ * @param {string} sourceName - 数据源名称
+ * @returns {Object} 配置对象
+ */
+function loadAndParseConfig(absolutePath, sourceName) {
+  const fileContent = readFileSync(absolutePath, 'utf-8');
+
+  try {
+    return JSON.parse(fileContent);
+  } catch (parseError) {
+    console.error(`[配置加载] ${sourceName} 配置 JSON 格式错误`);
+    console.error('错误详情:', parseError.message);
+    console.error('请检查配置文件格式是否正确');
     process.exit(1);
   }
+}
+
+/**
+ * 验证配置并输出日志
+ * @param {Object} config - 配置对象
+ * @param {string} sourceName - 数据源名称
+ */
+function validateAndLogConfig(config, sourceName) {
+  const validation = validateFilterConfig(config);
+
+  if (!validation.valid) {
+    console.error(`[配置加载] ${sourceName} 配置验证失败`);
+    validation.errors.forEach(err => console.error('  - ' + err));
+    process.exit(1);
+  }
+
+  console.log(`[配置加载] ${sourceName} 配置加载成功`);
+  console.log(`  正面样例: ${config.positiveExamples.length} 个`);
+  console.log(`  反面样例: ${config.negativeExamples.length} 个`);
+}
+
+/**
+ * 处理配置加载错误
+ * @param {Error} error - 错误对象
+ * @param {string} configPath - 配置文件路径
+ * @param {string} sourceName - 数据源名称
+ */
+function handleConfigError(error, configPath, sourceName) {
+  if (error.code === 'ENOENT') {
+    console.error(`[配置加载] ${sourceName} 配置文件不存在: ${configPath}`);
+    console.error(`请创建配置文件,可参考 config/filter-rules-zsxq.json 示例`);
+  } else {
+    console.error(`[配置加载] 加载 ${sourceName} 配置失败:`, error.message);
+  }
+  process.exit(1);
 }
 
 /**

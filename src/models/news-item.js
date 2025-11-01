@@ -59,9 +59,8 @@ export class NewsItem {
     }
 
     // 数据源验证
-    const validSources = ['AIBase', 'Twitter', 'Feishu', 'WeChat', 'Zhishi'];
-    if (!this.source || !validSources.includes(this.source)) {
-      errors.push(`数据源必须是以下之一: ${validSources.join(', ')}`);
+    if (!this.source || typeof this.source !== 'string') {
+      errors.push('数据源是必填字段');
     }
 
     // 发布时间验证
