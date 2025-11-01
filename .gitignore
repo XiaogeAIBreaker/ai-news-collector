@@ -55,5 +55,5 @@ data/
 *.json.bak
 .claude/
 
-# 确保 src/input/ 目录不被忽略
-!src/input/
+# 确保 src/output/ 目录不被忽略
+!src/output/
