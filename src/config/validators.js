@@ -71,9 +71,9 @@ function validateExample(example, prefix) {
   // 摘要验证
   if (!example.summary || typeof example.summary !== 'string') {
     errors.push(`${prefix}: 摘要是必填字段`);
-  } else if (example.summary.length < 100 || example.summary.length > 200) {
+  } else if (example.summary.length < 100 || example.summary.length > 300) {
     errors.push(
-      `${prefix}: 摘要长度必须在 100-200 字符之间 (当前: ${example.summary.length})`
+      `${prefix}: 摘要长度必须在 100-300 字符之间 (当前: ${example.summary.length})`
     );
   }
 
