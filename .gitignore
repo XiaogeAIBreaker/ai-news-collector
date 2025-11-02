@@ -14,6 +14,9 @@ yarn.lock
 *.local.json
 config.local.*
 
+# 微信登录 token (自动生成,包含敏感信息)
+.wechat-token.json
+
 # Claude 本地配置
 .claude/settings.local.json
 .claude/*.local.*

@@ -5,6 +5,7 @@ import { loadFilterConfigForSource } from './config/loader.js';
 import { getEnabledDataSources } from './config/datasources.js';
 import { AIBaseCollector } from './collectors/aibase.js';
 import { ZSXQCollector } from './collectors/zsxq.js';
+import { WeChatMPCollector } from './collectors/wechat-mp.js';
 import { Orchestrator } from './services/orchestrator.js';
 import { MarkdownGenerator } from './output/markdown.js';
 import { createLogger } from './utils/logger.js';
@@ -19,7 +20,8 @@ const logger = createLogger('Main');
 function createCollector(sourceConfig) {
   const collectorMap = {
     'AIBase': AIBaseCollector,
-    '知识星球': ZSXQCollector
+    '知识星球': ZSXQCollector,
+    'WeChat-MP': WeChatMPCollector
   };
 
   const CollectorClass = collectorMap[sourceConfig.name];

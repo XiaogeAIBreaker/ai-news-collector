@@ -1,4 +1,15 @@
 /**
+ * 数据源配置
+ * 定义各个数据源的配置信息
+ */
+
+import { configLoader } from './config-loader.js';
+import { validateWeChatAccounts } from './validators.js';
+import { createLogger } from '../utils/logger.js';
+
+const logger = createLogger('DataSources');
+
+/**
  * AIBase 数据源配置
  */
 export const AIBASE_CONFIG = {
@@ -6,11 +17,10 @@ export const AIBASE_CONFIG = {
   type: 'web',
   enabled: true,
   maxItems: 10,
-  timeout: 30000, // 30秒
+  timeout: 30000,
   config: {
     url: 'https://www.aibase.com/zh/news',
     selectors: {
-      // 注意: 这些选择器需要根据实际网站HTML结构调整
       newsContainer: '.news-list',
       newsItem: '.news-item',
       title: '.news-title',
@@ -33,24 +43,16 @@ export const ZSXQ_CONFIG = {
   name: '知识星球',
   type: 'web',
   enabled: true,
-  maxItems: 20, // 每个标签最多采集 20 条
-  timeout: 30000, // 30秒
+  maxItems: 20,
+  timeout: 30000,
   config: {
-    // 星球配置列表 - 每个星球可以配置多个标签
     groups: [
       {
-        groupId: '15552545485212', // 星球 ID (从 URL 中提取)
-        groupName: 'AI风向标', // 星球名称
-        tags: ['中标', 'AI风向标'] // 要采集的标签列表
+        groupId: '15552545485212',
+        groupName: 'AI风向标',
+        tags: ['中标', 'AI风向标']
       }
-      // 可以添加更多星球配置
-      // {
-      //   groupId: 'another_group_id',
-      //   groupName: '另一个星球',
-      //   tags: ['标签1', '标签2']
-      // }
     ],
-    // API 基础配置
     apiBase: 'https://api.zsxq.com/v2',
     webBase: 'https://wx.zsxq.com',
     headers: {
@@ -64,29 +66,67 @@ export const ZSXQ_CONFIG = {
 };
 
 /**
- * 获取所有启用的数据源配置
+ * 从配置文件加载微信公众号列表
+ * @returns {Array} 公众号配置数组
  */
-export function getEnabledDataSources() {
-  const allSources = [
-    AIBASE_CONFIG,
-    ZSXQ_CONFIG
-    // 未来可以在这里添加其他数据源
-    // TWITTER_CONFIG,
-    // FEISHU_CONFIG,
-    // WECHAT_CONFIG
-  ];
+function loadWeChatAccounts() {
+  try {
+    const accounts = configLoader.loadAndValidate(
+      'config/wechat-accounts.json',
+      validateWeChatAccounts,
+      { required: false, defaultValue: [] }
+    );
 
-  return allSources.filter(source => source.enabled);
+    if (accounts && accounts.length > 0) {
+      logger.info(`加载了 ${accounts.length} 个公众号配置`);
+    } else {
+      logger.warn('未配置微信公众号');
+    }
+
+    return accounts || [];
+  } catch (error) {
+    logger.error(`加载微信公众号配置失败: ${error.message}`);
+    return [];
+  }
 }
 
 /**
- * 根据名称获取数据源配置
+ * 微信公众号 MP 数据源配置
  */
-export function getDataSourceByName(name) {
-  const sources = {
-    'AIBase': AIBASE_CONFIG,
-    '知识星球': ZSXQ_CONFIG
-  };
+export const WECHAT_MP_CONFIG = {
+  name: 'WeChat-MP',
+  type: 'api',
+  enabled: true,
+  maxItems: 20,
+  timeout: 30000,
+  config: {
+    apiUrl: 'https://mp.weixin.qq.com/cgi-bin/appmsgpublish',
+    // 使用 getter 延迟加载账号列表
+    get accounts() {
+      return loadWeChatAccounts();
+    },
+    rateLimit: {
+      minDelay: 3000,
+      maxDelay: 5000
+    }
+  }
+};
 
-  return sources[name] || null;
+/**
+ * 获取所有启用的数据源配置
+ * @returns {Array<Object>} 启用的数据源配置数组
+ */
+export function getEnabledDataSources() {
+  const allSources = [
+    // AIBASE_CONFIG,
+    // ZSXQ_CONFIG,
+    WECHAT_MP_CONFIG
+  ];
+
+  const enabled = allSources.filter(source => source.enabled);
+
+  logger.info(`启用的数据源: ${enabled.map(s => s.name).join(', ')}`);
+
+  return enabled;
 }
+

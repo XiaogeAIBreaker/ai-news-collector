@@ -1,11 +1,12 @@
 # AI 新闻采集器
 
-轻量级 AI 新闻采集器 - 从 AIBase、知识星球等数据源采集最新的 AI 相关新闻,使用 DeepSeek LLM 根据用户提供的正反面样例进行智能过滤,输出高质量新闻到 Markdown 文档。
+轻量级 AI 新闻采集器 - 从 AIBase、知识星球、微信公众号等数据源采集最新的 AI 相关新闻,使用 DeepSeek LLM 根据用户提供的正反面样例进行智能过滤,输出高质量新闻到 Markdown 文档。
 
 ## 功能特性
 
-- ✅ **多数据源采集**: 支持 AIBase 和知识星球,可扩展更多数据源
+- ✅ **多数据源采集**: 支持 AIBase、知识星球和微信公众号,可扩展更多数据源
 - ✅ **智能采集**: 自动抓取最新 AI 新闻和社群讨论
+- 🆕 **微信公众号采集**: 通过二维码扫码登录,零配置采集公众号文章
 - ✅ **LLM 评分**: 使用 DeepSeek API 根据用户偏好对内容进行智能评分
 - ✅ **动态过滤**: 自动保留得分最高的 10-30% 内容
 - ✅ **配置化**: 通过 JSON 配置文件设置正反面样例
@@ -20,6 +21,7 @@
 - Node.js 18+ (LTS 版本)
 - DeepSeek API Key ([获取地址](https://platform.deepseek.com/api_keys))
 - (可选) 知识星球 Cookie - 如需采集知识星球内容
+- (可选) 微信公众号 - 如需采集微信公众号文章(个人订阅号即可)
 
 ### 2. 安装依赖
 
@@ -56,6 +58,68 @@ DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
 - 不要使用 `document.cookie`,因为 `zsxq_access_token` 是 HttpOnly Cookie,无法通过 JavaScript 访问
 - Cookie 示例格式: `zsxq_access_token=xxxxxxxxxx; sensorsdata2015jssdkcross=xxxxxxxxxx; abtest_env=product`
 
+**配置微信公众号采集**(可选):
+
+**第一步: 获取 Token 和 Cookie**
+
+1. 浏览器登录微信公众号后台 https://mp.weixin.qq.com/
+2. 打开浏览器开发者工具 (F12 或 Command+Option+I)
+3. 从 URL 中复制 `token` 参数
+4. 从 Network → Headers → Cookie 中复制完整的 Cookie 值
+5. 添加到 `.env` 文件
+
+详细图文教程: [如何获取微信公众号 Token 和 Cookie](docs/how-to-get-wechat-token.md)
+
+**快速配置**:
+
+编辑 `.env` 文件,添加以下配置:
+```bash
+WECHAT_TOKEN=你的token值
+WECHAT_COOKIE=完整的cookie字符串
+```
+
+示例:
+```bash
+WECHAT_TOKEN=1234567890
+WECHAT_COOKIE=slave_user=gh_xxxxx; slave_sid=xxxxx; bizuin=xxxxx
+```
+
+**第二步: 配置要采集的公众号**
+
+编辑 `config/wechat-accounts.json` 文件:
+
+```bash
+# 如果文件不存在,从示例文件复制
+cp config/wechat-accounts.example.json config/wechat-accounts.json
+
+# 编辑配置
+vim config/wechat-accounts.json
+```
+
+添加要采集的公众号:
+```json
+[
+  {
+    "fakeid": "MzI1NjIyMTAwMA==",
+    "nickname": "AI科技评论"
+  },
+  {
+    "fakeid": "MzUxOTU3NjE4MA==",
+    "nickname": "量子位"
+  }
+]
+```
+
+**如何获取 Fakeid**:
+1. 登录你的公众号后台 https://mp.weixin.qq.com/
+2. 进入"素材管理" → "新建图文消息"
+3. 点击"超链接" → "文章链接"
+4. 搜索目标公众号名称
+5. 打开 DevTools (F12) → Network 标签
+6. 从请求 URL 中复制 `fakeid` 参数
+
+**注意**: Token 有效期约 7 天,过期后需要重新获取
+
 ### 4. 配置过滤规则
 
 编辑 \`config/filter-rules.json\` 文件,设置你的正反面样例:
@@ -86,10 +150,11 @@ npm start
 \`\`\`
 
 程序会自动:
-1. 从启用的数据源(AIBase/知识星球)采集最新内容
-2. 使用 LLM 对所有内容进行混合评分
-3. 过滤出高质量内容
-4. 生成 Markdown 报告到 \`output/filtered-news.md\`(按数据源分组展示)
+1. 从启用的数据源(AIBase/知识星球/微信公众号)采集最新内容
+2. 加载微信 Token 配置(如已配置)
+3. 使用 LLM 对所有内容进行混合评分
+4. 过滤出高质量内容
+5. 生成 Markdown 报告到 \`output/filtered-news.md\`(按数据源分组展示)
 
 ## 项目结构
 
