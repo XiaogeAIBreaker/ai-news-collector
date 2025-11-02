@@ -16,7 +16,7 @@ export const AIBASE_CONFIG = {
   name: 'AIBase',
   type: 'web',
   enabled: true,
-  maxItems: 10,
+  maxItems: 50,
   timeout: 30000,
   config: {
     url: 'https://www.aibase.com/zh/news',
@@ -143,8 +143,8 @@ export const WECHAT_MP_CONFIG = {
  */
 export function getEnabledDataSources() {
   const allSources = [
-    // AIBASE_CONFIG,
-    ZSXQ_CONFIG,
+    AIBASE_CONFIG,
+    // ZSXQ_CONFIG,
     // WECHAT_MP_CONFIG
   ];
 

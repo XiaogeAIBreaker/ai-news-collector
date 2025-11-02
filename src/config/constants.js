@@ -7,7 +7,7 @@
 export const COLLECTOR_CONSTANTS = {
   // AIBase 采集器
   AIBASE: {
-    MAX_ITEMS: 10,           // 最大采集数量
+    MAX_ITEMS: 50,           // 最大采集数量
     TIMEOUT: 30000,          // 请求超时时间(毫秒)
     PAGE_LOAD_WAIT: 3000,    // 页面加载等待时间(毫秒)
     SELECTOR_WAIT: 10000     // 选择器等待超时(毫秒)

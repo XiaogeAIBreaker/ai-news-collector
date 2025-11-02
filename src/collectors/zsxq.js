@@ -207,11 +207,12 @@ export class ZSXQCollector extends BaseCollector {
    */
   getAllowedPageSizes() {
     const limit = Math.min(this.config.maxItems, 50);
-    const candidates = [20, 10]
-      .filter(size => size <= limit)
-      .concat(limit < 10 ? [limit] : []);
+    const baseSizes = [50, 40, 30, 20, 10];
+    const candidates = baseSizes
+      .map(size => Math.min(size, limit))
+      .filter(size => size > 0);
 
-    const unique = [...new Set(candidates.filter(size => size > 0))];
+    const unique = [...new Set(candidates)];
     if (unique.length === 0) {
       return [limit];
     }

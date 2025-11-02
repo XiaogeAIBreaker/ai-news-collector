@@ -222,6 +222,7 @@ export class AIBaseCollector extends BaseCollector {
   async scrapeWithPuppeteer() {
     const puppeteer = await import('puppeteer');
     const { PAGE_LOAD_WAIT, MAX_ITEMS } = COLLECTOR_CONSTANTS.AIBASE;
+    const targetMaxItems = Math.min(this.config.maxItems, MAX_ITEMS);
 
     this.logger.info('启动浏览器...');
     const browser = await puppeteer.default.launch({
@@ -245,6 +246,9 @@ export class AIBaseCollector extends BaseCollector {
       // 等待更长时间让 React/Next.js 渲染完成
       await new Promise(resolve => setTimeout(resolve, PAGE_LOAD_WAIT));
 
+      // 尝试滚动页面加载更多新闻
+      await this.autoLoadMore(page, targetMaxItems);
+
       this.logger.debug('等待新闻列表加载...');
 
       // 提取新闻数据
@@ -261,7 +265,7 @@ export class AIBaseCollector extends BaseCollector {
 
         console.log(`找到 ${links.length} 个链接`);
 
-        for (let i = 0; i < Math.min(links.length, maxItems * 2); i++) {
+        for (let i = 0; i < links.length && items.length < maxItems; i += 1) {
           const link = links[i];
 
           // 提取 URL
@@ -320,7 +324,7 @@ export class AIBaseCollector extends BaseCollector {
 
         console.log(`提取到 ${items.length} 条新闻`);
         return items;
-      }, MAX_ITEMS);
+      }, targetMaxItems);
 
       this.logger.success(`提取到 ${newsData.length} 条新闻数据`);
 
@@ -350,6 +354,39 @@ export class AIBaseCollector extends BaseCollector {
     } finally {
       await browser.close();
       this.logger.info('浏览器已关闭');
+    }
+  }
+
+  async autoLoadMore(page, targetMaxItems) {
+    const MAX_ATTEMPTS = 10;
+    let lastCount = 0;
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+      const currentCount = await page.evaluate(() => document.querySelectorAll('a[href*="/news/"]').length);
+      if (currentCount >= targetMaxItems) {
+        break;
+      }
+
+      if (currentCount === lastCount) {
+        const clicked = await page.evaluate(() => {
+          const candidates = Array.from(document.querySelectorAll('button, a'));
+          const loadMore = candidates.find(el => /加载更多|Load\s*more|查看更多|More/i.test((el.textContent || '').trim()));
+          if (loadMore) {
+            loadMore.click();
+            return true;
+          }
+          return false;
+        });
+
+        if (!clicked) {
+          await page.evaluate(() => window.scrollBy(0, window.innerHeight));
+        }
+      } else {
+        lastCount = currentCount;
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }
   }
 }

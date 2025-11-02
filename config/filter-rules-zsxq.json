@@ -88,8 +88,8 @@
     }
   ],
   "thresholdConfig": {
-    "minPercentage": 15,
-    "maxPercentage": 35,
+    "minPercentage": 10,
+    "maxPercentage": 30,
     "preferredCount": 20
   }
 }
