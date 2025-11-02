@@ -71,9 +71,9 @@ function validateExample(example, prefix) {
   // 摘要验证
   if (!example.summary || typeof example.summary !== 'string') {
     errors.push(`${prefix}: 摘要是必填字段`);
-  } else if (example.summary.length < 50 || example.summary.length > 500) {
+  } else if (example.summary.length < 10 || example.summary.length > 500) {
     errors.push(
-      `${prefix}: 摘要长度必须在 50-500 字符之间 (当前: ${example.summary.length})`
+      `${prefix}: 摘要长度必须在 10-500 字符之间 (当前: ${example.summary.length})`
     );
   }
 
@@ -184,17 +184,34 @@ export function validateZSXQGroups(groups) {
       errors.push(`${prefix}: groupName 是必填字段`);
     }
 
-    if (group.tags !== undefined) {
-      if (!Array.isArray(group.tags)) {
-        errors.push(`${prefix}: tags 必须是字符串数组`);
-      } else {
-        group.tags.forEach((tag, tagIndex) => {
-          if (typeof tag !== 'string' || tag.trim() === '') {
-            errors.push(`${prefix}: tags[${tagIndex}] 必须是非空字符串`);
-          }
-        });
-      }
+    if (!Array.isArray(group.hashtags) || group.hashtags.length === 0) {
+      errors.push(`${prefix}: hashtags 必须是包含至少一个话题的数组`);
+      return;
     }
+
+    group.hashtags.forEach((hashtag, tagIndex) => {
+      const tagPrefix = `${prefix}.hashtags[${tagIndex}]`;
+
+      if (typeof hashtag === 'string') {
+        if (hashtag.trim() === '') {
+          errors.push(`${tagPrefix}: 话题 ID 不能为空字符串`);
+        }
+        return;
+      }
+
+      if (typeof hashtag !== 'object' || hashtag === null) {
+        errors.push(`${tagPrefix}: 必须是包含 id/name 的对象或直接使用字符串 ID`);
+        return;
+      }
+
+      if (!hashtag.id || typeof hashtag.id !== 'string' || hashtag.id.trim() === '') {
+        errors.push(`${tagPrefix}: id 是必填字段且必须是非空字符串`);
+      }
+
+      if (hashtag.name !== undefined && typeof hashtag.name !== 'string') {
+        errors.push(`${tagPrefix}: name 必须是字符串`);
+      }
+    });
   });
 
   return {

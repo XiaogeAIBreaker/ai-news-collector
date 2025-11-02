@@ -160,7 +160,7 @@ cp wechat-accounts.example.json wechat-accounts.json
 ### zsxq-groups.json
 知识星球分组配置文件。
 
-**用途**: 配置需要采集的星球列表及标签过滤。
+**用途**: 配置需要采集的星球列表及话题(hashtags)。
 
 **配置格式**:
 ```json
@@ -168,7 +168,10 @@ cp wechat-accounts.example.json wechat-accounts.json
   {
     "groupId": "15552545485212",
     "groupName": "AI风向标",
-    "tags": ["中标", "AI风向标"]
+    "hashtags": [
+      { "id": "15555541155522", "name": "AI风向标" },
+      { "id": "15555541155523", "name": "中标" }
+    ]
   }
 ]
 ```
@@ -179,7 +182,14 @@ cp wechat-accounts.example.json wechat-accounts.json
 |------|------|------|
 | `groupId` | ✅ 是 | 星球的唯一标识符(从星球详情页 URL 获取) |
 | `groupName` | ✅ 是 | 星球名称,用于日志输出 |
-| `tags` | ❌ 否 | 需要采集的标签数组(为空表示抓取全部) |
+| `hashtags` | ✅ 是 | 需要采集的话题数组,每项可填写 `{ id, name }` 或直接写话题 ID 字符串 |
+
+> ℹ️ 接口单次返回数量上限为 20 条,程序会在后台根据 `maxItems` 自动拆分请求
+
+**获取话题 ID**:
+1. 登录网页版知识星球(https://wx.zsxq.com) 并打开目标话题
+2. 观察地址栏,格式类似 `https://wx.zsxq.com/dweb2/index/hashtags/15555541155522`
+3. `hashtags/` 后的数字即为话题 ID,将其填入 `id` 字段即可
 
 ---
 

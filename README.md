@@ -25,26 +25,26 @@
 
 ### 2. 安装依赖
 
-\`\`\`bash
+```bash
 npm install
-\`\`\`
+```
 
 ### 3. 配置环境变量
 
 复制 \`.env.example\` 到 \`.env\` 并填入你的 API Key:
 
-\`\`\`bash
+```bash
 cp .env.example .env
-\`\`\`
+```
 
 编辑 \`.env\` 文件:
 
-\`\`\`env
+```env
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
 
 # 可选:知识星球 Cookie (如需采集知识星球内容)
 # ZSXQ_COOKIE=your_zsxq_cookie_here
-\`\`\`
+```
 
 **获取知识星球 Cookie**:
 1. 浏览器登录 https://wx.zsxq.com
@@ -124,7 +124,7 @@ vim config/wechat-accounts.json
 
 编辑 \`config/filter-rules.json\` 文件,设置你的正反面样例:
 
-\`\`\`json
+```json
 {
   "positiveExamples": [
     {
@@ -141,13 +141,13 @@ vim config/wechat-accounts.json
     }
   ]
 }
-\`\`\`
+```
 
 ### 5. 运行程序
 
-\`\`\`bash
+```bash
 npm start
-\`\`\`
+```
 
 程序会自动:
 1. 从启用的数据源(AIBase/知识星球/微信公众号)采集最新内容
@@ -158,7 +158,7 @@ npm start
 
 ## 项目结构
 
-\`\`\`
+```
 ai-news-collector/
 ├── src/
 │   ├── collectors/       # 数据采集器
@@ -184,7 +184,7 @@ ai-news-collector/
 ├── output/              # 输出目录(自动保存带时间戳的 Markdown 报告)
 ├── .env.example         # 环境变量示例
 └── package.json
-\`\`\`
+```
 
 ## 配置说明
 
@@ -207,16 +207,20 @@ ai-news-collector/
 - 例如,禁用知识星球: 将 \`ZSXQ_CONFIG.enabled\` 设为 \`false\`
 
 **配置知识星球**:
-- 在 \`ZSXQ_CONFIG.config.groups\` 中添加要采集的星球
-- 每个星球可配置多个标签(tags)
+- 在 `ZSXQ_CONFIG.config.groups` 中添加要采集的星球
+- 为每个星球配置一个或多个话题(hashtags)
 - 示例:
-\`\`\`javascript
+```javascript
 {
   groupId: '15552545485212',  // 星球ID(从URL提取)
   groupName: 'AI风向标',       // 星球名称
-  tags: ['中标', 'AI风向标']   // 要采集的标签列表
+  hashtags: [
+    { id: '15555541155522', name: 'AI风向标' },
+    { id: '15555541155523', name: '中标' }
+  ]
 }
-\`\`\`
+```
+- ⚠️ 知识星球话题接口单次最多返回 20 条,程序会根据 `maxItems` 自动降级并分批拉取
 
 ### 过滤规则配置
 
@@ -290,13 +294,16 @@ ai-news-collector/
 ### 6. 如何添加更多知识星球?
 
 编辑 \`src/config/datasources.js\` 中的 \`ZSXQ_CONFIG.config.groups\`,添加新的星球配置:
-\`\`\`javascript
+```javascript
 {
   groupId: 'your_group_id',     // 从星球URL中提取
   groupName: '星球名称',
-  tags: ['标签1', '标签2']       // 要采集的标签
+  hashtags: [
+    { id: '15555541155522', name: 'AI风向标' },
+    { id: '15555541155523', name: '中标' }
+  ]
 }
-\`\`\`
+```
 
 ## 技术栈
 

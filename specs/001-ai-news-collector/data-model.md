@@ -44,7 +44,9 @@
   "content": "完整新闻内容...",
   "metadata": {
     "author": "AI News Team",
-    "tags": ["OpenAI", "GPT-5", "LLM"]
+    "hashtags": [
+      { "id": "15555541155522", "name": "AI风向标" }
+    ]
   }
 }
 ```

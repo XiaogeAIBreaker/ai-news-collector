@@ -80,23 +80,27 @@ export class ZSXQCollector extends BaseCollector {
 
       // 循环处理所有配置的星球
       for (const group of groups) {
-        const { groupId, groupName, tags } = group;
+        const { groupId, groupName } = group;
         this.logger.info(`正在采集星球: ${groupName} (${groupId})`);
 
-        // 循环处理该星球的所有标签
-        for (const tag of tags) {
-          this.logger.info(`  采集标签: ${tag}`);
+        const hashtags = this.normalizeHashtags(group);
+        if (hashtags.length === 0) {
+          this.logger.warn(`  星球未配置 hashtags,跳过`);
+          continue;
+        }
+
+        for (const hashtag of hashtags) {
+          const hashtagLabel = hashtag.name || hashtag.id;
+          this.logger.info(`  采集话题: ${hashtagLabel}`);
 
           try {
-            const topics = await this.fetchGroupTopics(groupId, tag);
+            const topics = await this.fetchHashtagTopics(hashtag.id);
             this.logger.success(`    获取到 ${topics.length} 条帖子`);
 
-            // 转换为 NewsItem
-            const newsItems = this.parseTopics(topics, groupName);
+            const newsItems = this.parseTopics(topics, groupName, hashtag);
             allNewsItems.push(...newsItems);
           } catch (error) {
-            this.logger.error(`    采集标签 ${tag} 失败: ${error.message}`);
-            // 继续处理其他标签
+            this.logger.error(`    采集话题 ${hashtagLabel} 失败: ${error.message}`);
           }
         }
       }
@@ -112,32 +116,133 @@ export class ZSXQCollector extends BaseCollector {
   }
 
   /**
-   * 从指定星球获取帖子列表
-   * @param {string} groupId - 星球 ID
-   * @param {string} tag - 标签名称
+   * 从指定话题获取帖子列表
+   * @param {string} hashtagId - 话题 ID
    * @returns {Promise<Array>}
    */
-  async fetchGroupTopics(groupId, tag) {
-    const url = this.buildApiUrl(groupId);
-    const headers = this.buildRequestHeaders();
+  async fetchHashtagTopics(hashtagId) {
+    const collected = [];
+    const pageSizes = this.getAllowedPageSizes();
+    let lastError = null;
 
-    // 带重试的请求
-    const topics = await this.retryWithBackoff(() =>
-      this.fetchTopicsWithRetry(url, headers)
-    );
+    for (const size of pageSizes) {
+      const attempt = await this.tryFetchHashtagTopics(hashtagId, size);
+      if (attempt.success) {
+        collected.push(...attempt.items);
+        return collected.slice(0, this.config.maxItems);
+      }
 
-    // 按标签过滤
-    return this.filterTopicsByTag(topics, tag);
+      lastError = attempt.error;
+      this.logger.warn(
+        `  请求失败(code=${lastError.code || 'unknown'})，尝试降低 count`
+      );
+    }
+
+    if (lastError) {
+      throw lastError;
+    }
+
+    return collected;
   }
 
   /**
-   * 构建 API 请求 URL
-   * @param {string} groupId - 星球 ID
+   * 使用指定分页大小尝试拉取话题
+   * @param {string} hashtagId
+   * @param {number} pageSize
+   */
+  async tryFetchHashtagTopics(hashtagId, pageSize) {
+    try {
+      const items = await this.fetchHashtagTopicsWithSize(hashtagId, pageSize);
+      return { success: true, items };
+    } catch (error) {
+      if (this.isRecoverableApiError(error)) {
+        return { success: false, error };
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * 实际按照分页大小拉取所有数据
+   * @param {string} hashtagId
+   * @param {number} pageSize
+   */
+  async fetchHashtagTopicsWithSize(hashtagId, pageSize) {
+    const collected = [];
+    let endTime;
+
+    while (collected.length < this.config.maxItems) {
+      this.logger.debug(
+        `  正在请求 count=${pageSize}${endTime ? `, end_time=${endTime}` : ''}`
+      );
+
+      const payload = await this.requestHashtagTopics(
+        hashtagId,
+        pageSize,
+        endTime
+      );
+
+      const { topics = [], end_time: apiEndTime } = payload;
+      if (topics.length === 0) {
+        break;
+      }
+
+      collected.push(...topics);
+
+      const nextEndTime = apiEndTime || this.getFallbackEndTime(topics);
+      if (!nextEndTime || nextEndTime === endTime) {
+        break;
+      }
+
+      endTime = nextEndTime;
+      this.logger.debug(`  下一分页 end_time=${endTime}`);
+    }
+
+    return collected;
+  }
+
+  /**
+   * 计算可用的分页大小,优先尝试较大值
+   */
+  getAllowedPageSizes() {
+    const limit = Math.min(this.config.maxItems, 50);
+    const candidates = [20, 10]
+      .filter(size => size <= limit)
+      .concat(limit < 10 ? [limit] : []);
+
+    const unique = [...new Set(candidates.filter(size => size > 0))];
+    if (unique.length === 0) {
+      return [limit];
+    }
+
+    return unique.sort((a, b) => b - a);
+  }
+
+  async requestHashtagTopics(hashtagId, pageSize, endTime) {
+    const url = this.buildHashtagApiUrl(hashtagId);
+    const headers = this.buildRequestHeaders();
+    const params = {
+      count: pageSize
+    };
+
+    if (endTime) {
+      params.end_time = endTime;
+    }
+
+    return this.retryWithBackoff(() =>
+      this.fetchTopicsWithRetry(url, headers, params)
+    );
+  }
+
+  /**
+   * 构建话题接口请求 URL
+   * @param {string} hashtagId - 话题 ID
    * @returns {string}
    */
-  buildApiUrl(groupId) {
+  buildHashtagApiUrl(hashtagId) {
     const apiBase = this.config.config.apiBase;
-    return `${apiBase}/groups/${groupId}/topics`;
+    return `${apiBase}/hashtags/${hashtagId}/topics`;
   }
 
   /**
@@ -161,17 +266,14 @@ export class ZSXQCollector extends BaseCollector {
    * @param {Object} headers - 请求头
    * @returns {Promise<Array>}
    */
-  async fetchTopicsWithRetry(url, headers) {
+  async fetchTopicsWithRetry(url, headers, params = {}) {
     try {
       this.logger.debug(`请求 URL: ${url}`);
       this.logger.debug(`Cookie 键: ${Object.keys(this.cookies).join(', ')}`);
 
       const response = await axios.get(url, {
         headers,
-        params: {
-          scope: 'all',
-          count: this.config.maxItems
-        },
+        params,
         timeout: this.config.timeout,
         validateStatus: (status) => status >= 200 && status < 600
       });
@@ -219,16 +321,32 @@ export class ZSXQCollector extends BaseCollector {
    * @returns {Array}
    */
   extractTopicsFromResponse(data) {
-    this.logger.debug(`响应数据结构: ${JSON.stringify(Object.keys(data))}`);
-
-    if (!data.resp_data || !data.resp_data.topics) {
-      this.logger.warn(`API 返回格式不符合预期: ${JSON.stringify(data)}`);
-      return [];
+    if (!data || typeof data !== 'object') {
+      throw this.createApiError('INVALID_RESPONSE', 'API 返回空响应');
     }
 
-    const topics = data.resp_data.topics || [];
-    this.logger.debug(`获取到 ${topics.length} 个主题`);
-    return topics;
+    this.logger.debug(`响应数据结构: ${JSON.stringify(Object.keys(data))}`);
+
+    if (data.succeeded === false) {
+      throw this.createApiError(data.code ?? 'UNKNOWN', data.error || 'ZSXQ 请求失败');
+    }
+
+    const respData = data.resp_data || {};
+
+    if (!Array.isArray(respData.topics)) {
+      throw this.createApiError(
+        data.code ?? 'MISSING_TOPICS',
+        '响应中缺少 topics 字段'
+      );
+    }
+
+    this.logger.debug(`获取到 ${respData.topics.length} 个主题`);
+
+    return {
+      topics: respData.topics,
+      has_more: Boolean(respData.has_more),
+      end_time: respData.end_time
+    };
   }
 
   /**
@@ -236,6 +354,13 @@ export class ZSXQCollector extends BaseCollector {
    * @param {Error} error - 错误对象
    */
   handleFetchError(error) {
+    if (error?.isApiError) {
+      this.logger.error(
+        `API 错误${error.code ? ` (${error.code})` : ''}: ${error.message}`
+      );
+      return;
+    }
+
     if (error.response) {
       const status = error.response.status;
       this.logger.error(`HTTP 错误 ${status}: ${JSON.stringify(error.response.data)}`);
@@ -253,27 +378,13 @@ export class ZSXQCollector extends BaseCollector {
   }
 
   /**
-   * 按标签过滤帖子
-   * @param {Array} topics - 帖子数组
-   * @param {string} tag - 标签名称
-   * @returns {Array}
-   */
-  filterTopicsByTag(topics, tag) {
-    return topics.filter(topic => {
-      if (topic.tags && Array.isArray(topic.tags)) {
-        return topic.tags.some(t => t.name === tag || t.title === tag);
-      }
-      return true;
-    });
-  }
-
-  /**
    * 解析帖子数据,转换为 NewsItem
    * @param {Array} topics - 帖子数据数组
    * @param {string} groupName - 星球名称
+   * @param {{id: string, name?: string}} hashtag - 话题信息
    * @returns {NewsItem[]}
    */
-  parseTopics(topics, groupName) {
+  parseTopics(topics, groupName, hashtag) {
     const newsItems = [];
 
     for (const topic of topics) {
@@ -284,7 +395,7 @@ export class ZSXQCollector extends BaseCollector {
         }
 
         // 转换为 NewsItem
-        const newsItem = this.topicToNewsItem(topic, groupName);
+        const newsItem = this.topicToNewsItem(topic, groupName, hashtag);
 
         // 验证并添加
         if (this.validateAndLogNewsItem(newsItem, topic.topic_id)) {
@@ -318,11 +429,11 @@ export class ZSXQCollector extends BaseCollector {
    * @param {string} groupName - 星球名称
    * @returns {NewsItem}
    */
-  topicToNewsItem(topic, groupName) {
+  topicToNewsItem(topic, groupName, hashtag) {
     const { title, summary } = this.extractTitleAndSummary(topic);
     const url = this.buildTopicUrl(topic.group.group_id, topic.topic_id);
     const createdAt = new Date(topic.create_time);
-    const metadata = this.extractMetadata(topic);
+    const metadata = this.extractMetadata(topic, hashtag);
 
     return new NewsItem({
       title: title.trim(),
@@ -341,15 +452,73 @@ export class ZSXQCollector extends BaseCollector {
    * @param {Object} topic - 帖子对象
    * @returns {Object}
    */
-  extractMetadata(topic) {
+  extractMetadata(topic, hashtag) {
     return {
       author: topic.owner?.name || DEFAULT_VALUES.AUTHOR,
       authorAvatar: topic.owner?.avatar_url || '',
       likes: topic.likes?.count || 0,
       comments: topic.comments?.count || 0,
       views: topic.reads_count || 0,
-      topicId: topic.topic_id
+      topicId: topic.topic_id,
+      hashtagId: hashtag?.id,
+      hashtagName: hashtag?.name
     };
+  }
+
+  /**
+   * 规范化 hashtags 配置
+   * @param {Object} group
+   * @returns {Array<{id: string, name?: string}>}
+   */
+  normalizeHashtags(group) {
+    if (!Array.isArray(group.hashtags)) {
+      return [];
+    }
+
+    return group.hashtags
+      .map(item => {
+        if (typeof item === 'string') {
+          return { id: item.trim(), name: item.trim() };
+        }
+
+        if (item && typeof item === 'object') {
+          return {
+            id: item.id?.trim(),
+            name: item.name?.trim()
+          };
+        }
+        return null;
+      })
+      .filter(item => item && item.id);
+  }
+
+  /**
+   * 返回下一页的 end_time 参数; 当 API 未返回 end_time 时，使用最后一条帖子的 create_time 兜底
+   * @param {Array} topics
+   * @returns {string|null}
+   */
+  getFallbackEndTime(topics) {
+    if (!Array.isArray(topics) || topics.length === 0) {
+      return null;
+    }
+
+    const lastTopic = topics[topics.length - 1];
+    return lastTopic?.create_time || lastTopic?.updated_time || null;
+  }
+
+  createApiError(code, message) {
+    const error = new Error(message);
+    error.code = code;
+    error.isApiError = true;
+    return error;
+  }
+
+  isRecoverableApiError(error) {
+    if (!error?.isApiError) {
+      return false;
+    }
+
+    return error.code === 1003 || error.code === 1059;
   }
 
   /**

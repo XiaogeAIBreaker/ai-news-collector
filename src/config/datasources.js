@@ -43,7 +43,8 @@ export const ZSXQ_CONFIG = {
   name: '知识星球',
   type: 'web',
   enabled: true,
-  maxItems: 20,
+  // 知识星球话题接口单次最多返回 20 条,实际采集会按需降级并分页拉取
+  maxItems: 50,
   timeout: 30000,
   config: {
     // 使用 getter 延迟加载星球配置
@@ -143,8 +144,8 @@ export const WECHAT_MP_CONFIG = {
 export function getEnabledDataSources() {
   const allSources = [
     // AIBASE_CONFIG,
-    // ZSXQ_CONFIG,
-    WECHAT_MP_CONFIG
+    ZSXQ_CONFIG,
+    // WECHAT_MP_CONFIG
   ];
 
   const enabled = allSources.filter(source => source.enabled);
