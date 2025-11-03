@@ -144,20 +144,23 @@ ${sourceSections.join('\n\n')}`;
    * @returns {string}
    */
   formatSourceSection(source, items) {
-    const content = items
-      .map((item, index) => this.formatNewsItem(item, index + 1))
-      .join('\n\n---\n\n');
+    const header =
+      '| 序号 | 标题 | 评分 | 发布时间 | 摘要 | 评分理由 | 互动数据 |\n' +
+      '|------|------|------|----------|------|----------|----------|';
+    const rows = items.map((item, index) =>
+      this.formatNewsRow(item, index + 1)
+    );
 
-    return `### 📡 ${source} (${items.length} 条)\n\n${content}`;
+    return `### 📡 ${source} (${items.length} 条)\n\n${header}\n${rows.join('\n')}`;
   }
 
   /**
-   * 格式化单条新闻内容
+   * 构建表格中的单行
    * @param {Object} scoredItem
    * @param {number} index
    * @returns {string}
    */
-  formatNewsItem(scoredItem, index) {
+  formatNewsRow(scoredItem, index) {
     const { newsItem, score, reason } = scoredItem;
     const scoreEmoji = this.getScoreEmoji(score);
     const publishTime = newsItem.createdAt.toLocaleString('zh-CN', {
@@ -168,18 +171,17 @@ ${sourceSections.join('\n\n')}`;
       minute: '2-digit'
     });
     const metadata = this.formatMetadata(newsItem.metadata);
+    const columns = [
+      index,
+      `[${this.escapeTableCell(newsItem.title)}](${newsItem.url})`,
+      `${scoreEmoji} ${score.toFixed(1)}`,
+      this.escapeTableCell(publishTime),
+      this.escapeTableCell(newsItem.summary),
+      this.escapeTableCell(reason),
+      this.escapeTableCell(metadata)
+    ];
 
-    return `#### ${index}. ${newsItem.title}
-
-**评分**: ${scoreEmoji} **${score.toFixed(1)}** / 10.0
-**发布时间**: ${publishTime}  ${metadata}
-**链接**: [查看原文](${newsItem.url})
-
-**摘要**:
-${newsItem.summary}
-
-**评分理由**:
-${reason}`;
+    return `| ${columns.join(' | ')} |`;
   }
 
   /**
@@ -189,14 +191,30 @@ ${reason}`;
    */
   formatMetadata(metadata = {}) {
     const parts = [];
-    if (metadata.author) parts.push(`**作者**: ${metadata.author}`);
+    if (metadata.author) parts.push(`作者: ${metadata.author}`);
     if (metadata.likes !== undefined) parts.push(`👍 ${metadata.likes}`);
     if (metadata.comments !== undefined) parts.push(`💬 ${metadata.comments}`);
     if (metadata.retweets !== undefined) parts.push(`🔁 ${metadata.retweets}`);
     if (metadata.quotes !== undefined) parts.push(`📌 ${metadata.quotes}`);
     if (metadata.views !== undefined) parts.push(`👀 ${metadata.views}`);
 
-    return parts.length > 0 ? `\n**互动数据**: ${parts.join(' | ')}  ` : '';
+    return parts.length > 0 ? parts.join('<br/>') : '';
+  }
+
+  /**
+   * 转义 Markdown 表格中的单元格内容
+   * @param {string|number} value
+   * @returns {string}
+   */
+  escapeTableCell(value) {
+    if (value === undefined || value === null || value === '') {
+      return '--';
+    }
+
+    return String(value)
+      .replace(/\r?\n/g, '<br/>')
+      .replace(/\|/g, '\\|')
+      .trim();
   }
 
   /**
