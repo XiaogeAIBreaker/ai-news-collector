@@ -11,6 +11,7 @@ LLM 智能过滤规则配置(按数据源分类)。
 - `filter-rules-aibase.json` - AIBase 数据源过滤规则
 - `filter-rules-zsxq.json` - 知识星球数据源过滤规则
 - `filter-rules-wechat-mp.json` - 微信公众号数据源过滤规则
+- `filter-rules-twitter.json` - Twitter 数据源过滤规则 (需结合 Composio 环境变量启用)
 
 **用途**: 为每个数据源定义独立的正反面样例,帮助 LLM 筛选高质量新闻。
 
@@ -205,7 +206,9 @@ Twitter 推主及搜索配置文件。
     "sinceHours": 168,
     "maxResultsPerPage": 100,
     "defaultLanguages": ["en", "zh"],
-    "defaultQuerySuffix": "-is:retweet"
+    "defaultQuerySuffix": "-is:retweet",
+    "maxItemsPerAccount": 10,
+    "maxItemsPerKeyword": 10
   },
   "keywords": ["AI", "Artificial Intelligence"],
   "accounts": [
@@ -230,9 +233,11 @@ Twitter 推主及搜索配置文件。
 | `config.maxResultsPerPage` | ❌ 否 | 单次请求的 `max_results`,范围 10-100,默认 100 |
 | `config.defaultLanguages` | ❌ 否 | 默认语言过滤,对应 Twitter `lang:` 语法 |
 | `config.defaultQuerySuffix` | ❌ 否 | 自动拼接在 `from:<handle>` 后的查询片段 |
+| `config.maxItemsPerAccount` | ❌ 否 | 单个推主允许返回的最大条数,默认 10 |
+| `config.maxItemsPerKeyword` | ❌ 否 | 单个关键词允许返回的最大条数,默认 10 |
 | `keywords` | ❌ 否 | 当未配置推主或推主禁用时的回退关键词集合 |
 | `accounts[].handle` | ✅ 是 | 推主用户名(不带 `@`) |
-| `accounts[].displayName` | ✅ 是 | 推主显示名称 |
+| `accounts[].displayName` | ✅ 是 | 推主显示名称,用于报告展示 |
 | `accounts[].description` | ❌ 否 | 备注/说明 |
 | `accounts[].query` | ❌ 否 | 自定义查询语句,覆盖默认 `from:<handle>` |
 | `accounts[].languages` | ❌ 否 | 针对推主的语言过滤 |
@@ -242,8 +247,8 @@ Twitter 推主及搜索配置文件。
 **使用建议**:
 - 如果仅关注少量推主,保持 `keywords` 数组为空即可
 - 若需要混合关注推主与关键词,可同时配置 `accounts` 与 `keywords`
+- 默认每个推主/关键词最多保留 10 条推文,可按需提高 `maxItemsPerAccount` 或 `maxItemsPerKeyword`
 - 可运行 `npm run composio:connection` 快速查看 `user_id` 等连接信息
-- `twitter-accounts.json` 同样应加入 `.gitignore`,避免提交个人账号信息
 
 ---
 
