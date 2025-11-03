@@ -13,7 +13,8 @@ const logger = createLogger('FilterConfig');
 const SOURCE_FILE_MAP = {
   'AIBase': 'aibase',
   '知识星球': 'zsxq',
-  'WeChat-MP': 'wechat-mp'
+  'WeChat-MP': 'wechat-mp',
+  'Twitter': 'twitter'
 };
 
 /**

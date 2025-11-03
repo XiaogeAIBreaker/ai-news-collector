@@ -1,0 +1,31 @@
+{
+  "config": {
+    "sinceHours": 168,
+    "maxResultsPerPage": 100,
+    "defaultLanguages": ["en", "zh"],
+    "defaultQuerySuffix": "-is:retweet"
+  },
+  "keywords": [
+    "AI",
+    "Artificial Intelligence",
+    "大模型",
+    "AIGC"
+  ],
+  "accounts": [
+    {
+      "handle": "AnthropicAI",
+      "displayName": "Anthropic",
+      "description": "AI 安全与研究团队",
+      "query": "from:AnthropicAI -is:retweet",
+      "languages": ["en"],
+      "tags": ["公司", "研究"],
+      "enabled": true
+    },
+    {
+      "handle": "OpenAI",
+      "displayName": "OpenAI",
+      "description": "OpenAI 官方账号",
+      "enabled": true
+    }
+  ]
+}

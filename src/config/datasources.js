@@ -4,7 +4,7 @@
  */
 
 import { configLoader } from './config-loader.js';
-import { validateWeChatAccounts, validateZSXQGroups } from './validators.js';
+import { validateWeChatAccounts, validateZSXQGroups, validateTwitterAccounts } from './validators.js';
 import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger('DataSources');
@@ -114,6 +114,42 @@ function loadZSXQGroups() {
 }
 
 /**
+ * 加载 Twitter 推主配置
+ * @returns {{ accounts: Array, config: Object, keywords: string[] }}
+ */
+function loadTwitterAccounts() {
+  const defaultSettings = {
+    accounts: [],
+    config: {},
+    keywords: []
+  };
+
+  try {
+    const settings = configLoader.loadAndValidate(
+      'config/twitter-accounts.json',
+      validateTwitterAccounts,
+      { required: false, defaultValue: defaultSettings }
+    ) || defaultSettings;
+
+    const accounts = Array.isArray(settings.accounts) ? settings.accounts : [];
+    if (accounts.length > 0) {
+      logger.info(`加载了 ${accounts.length} 个 Twitter 推主配置`);
+    } else {
+      logger.warn('未配置 Twitter 推主,将使用关键词搜索');
+    }
+
+    return {
+      accounts,
+      config: typeof settings.config === 'object' && settings.config !== null ? settings.config : {},
+      keywords: Array.isArray(settings.keywords) ? settings.keywords : []
+    };
+  } catch (error) {
+    logger.error(`加载 Twitter 配置失败: ${error.message}`);
+    return defaultSettings;
+  }
+}
+
+/**
  * 微信公众号 MP 数据源配置
  */
 export const WECHAT_MP_CONFIG = {
@@ -138,14 +174,31 @@ export const WECHAT_MP_CONFIG = {
 };
 
 /**
+ * Twitter 数据源配置
+ */
+export const TWITTER_CONFIG = {
+  name: 'Twitter',
+  type: 'api',
+  enabled: true,
+  maxItems: 50,
+  timeout: 30000,
+  config: {
+    get settings() {
+      return loadTwitterAccounts();
+    }
+  }
+};
+
+/**
  * 获取所有启用的数据源配置
  * @returns {Array<Object>} 启用的数据源配置数组
  */
 export function getEnabledDataSources() {
   const allSources = [
-    ZSXQ_CONFIG,
-    WECHAT_MP_CONFIG,
-    AIBASE_CONFIG,
+    // ZSXQ_CONFIG,
+    // WECHAT_MP_CONFIG,
+    TWITTER_CONFIG,
+    // AIBASE_CONFIG,
   ];
 
   const enabled = allSources.filter(source => source.enabled);

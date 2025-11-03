@@ -193,6 +193,60 @@ cp wechat-accounts.example.json wechat-accounts.json
 
 ---
 
+### twitter-accounts.json
+Twitter 推主及搜索配置文件。
+
+**用途**: 配置需要关注的推特账号,并定义默认的搜索行为。
+
+**结构**:
+```json
+{
+  "config": {
+    "sinceHours": 168,
+    "maxResultsPerPage": 100,
+    "defaultLanguages": ["en", "zh"],
+    "defaultQuerySuffix": "-is:retweet"
+  },
+  "keywords": ["AI", "Artificial Intelligence"],
+  "accounts": [
+    {
+      "handle": "AnthropicAI",
+      "displayName": "Anthropic",
+      "description": "AI 安全研究团队",
+      "query": "from:AnthropicAI -is:retweet",
+      "languages": ["en"],
+      "tags": ["公司", "研究"],
+      "enabled": true
+    }
+  ]
+}
+```
+
+**字段说明**:
+
+| 字段 | 必需 | 说明 |
+|------|------|------|
+| `config.sinceHours` | ❌ 否 | 拉取最近多少小时推文,默认 168 小时 |
+| `config.maxResultsPerPage` | ❌ 否 | 单次请求的 `max_results`,范围 10-100,默认 100 |
+| `config.defaultLanguages` | ❌ 否 | 默认语言过滤,对应 Twitter `lang:` 语法 |
+| `config.defaultQuerySuffix` | ❌ 否 | 自动拼接在 `from:<handle>` 后的查询片段 |
+| `keywords` | ❌ 否 | 当未配置推主或推主禁用时的回退关键词集合 |
+| `accounts[].handle` | ✅ 是 | 推主用户名(不带 `@`) |
+| `accounts[].displayName` | ✅ 是 | 推主显示名称 |
+| `accounts[].description` | ❌ 否 | 备注/说明 |
+| `accounts[].query` | ❌ 否 | 自定义查询语句,覆盖默认 `from:<handle>` |
+| `accounts[].languages` | ❌ 否 | 针对推主的语言过滤 |
+| `accounts[].tags` | ❌ 否 | 自定义标签,用于在报告中扩展 metadata |
+| `accounts[].enabled` | ❌ 否 | 是否启用该推主,默认 true |
+
+**使用建议**:
+- 如果仅关注少量推主,保持 `keywords` 数组为空即可
+- 若需要混合关注推主与关键词,可同时配置 `accounts` 与 `keywords`
+- 可运行 `npm run composio:connection` 快速查看 `user_id` 等连接信息
+- `twitter-accounts.json` 同样应加入 `.gitignore`,避免提交个人账号信息
+
+---
+
 ## 🔒 安全提醒
 
 - ⚠️ 所有 `*.json` 配置文件都不应提交到 Git (已在 `.gitignore` 中配置)

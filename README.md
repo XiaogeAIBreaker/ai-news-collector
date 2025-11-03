@@ -4,9 +4,10 @@
 
 ## 功能特性
 
-- ✅ **多数据源采集**: 支持 AIBase、知识星球和微信公众号,可扩展更多数据源
+- ✅ **多数据源采集**: 支持 AIBase、知识星球、微信公众号和 Twitter,可扩展更多数据源
 - ✅ **智能采集**: 自动抓取最新 AI 新闻和社群讨论
-- 🆕 **微信公众号采集**: 通过二维码扫码登录,零配置采集公众号文章
+- ✅ **微信公众号采集**: 通过二维码扫码登录,零配置采集公众号文章
+- 🆕 **Twitter 采集**: 基于 Composio 一键接入,支持关注推主与关键词搜索
 - ✅ **LLM 评分**: 使用 DeepSeek API 根据用户偏好对内容进行智能评分
 - ✅ **动态过滤**: 自动保留得分最高的 10-30% 内容
 - ✅ **配置化**: 通过 JSON 配置文件设置正反面样例
@@ -21,7 +22,8 @@
 - Node.js 18+ (LTS 版本)
 - DeepSeek API Key ([获取地址](https://platform.deepseek.com/api_keys))
 - (可选) 知识星球 Cookie - 如需采集知识星球内容
-- (可选) 微信公众号 - 如需采集微信公众号文章(个人订阅号即可)
+- (可选) 微信公众号 Token/Cookie - 如需采集公众号文章(个人订阅号即可)
+- (可选) Composio API Key + Twitter 连接 ID/user_id - 如需采集 Twitter 资讯
 
 ### 2. 安装依赖
 
@@ -41,6 +43,11 @@ cp .env.example .env
 
 ```env
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
+
+# 可选: Twitter 采集所需的 Composio 凭证
+# COMPOSIO_API_KEY=ak_xxxxxxxxxxxxx
+# COMPOSIO_CONNECTION_ID=ca_xxxxxxxxxxxxx
+# COMPOSIO_USER_ID=pg-test-xxxxxxxxxxxxxxx
 
 # 可选:知识星球 Cookie (如需采集知识星球内容)
 # ZSXQ_COOKIE=your_zsxq_cookie_here
@@ -120,6 +127,16 @@ vim config/wechat-accounts.json
 
 **注意**: Token 有效期约 7 天,过期后需要重新获取
 
+**配置 Twitter 采集**(可选):
+
+1. 登录 [Composio 控制台](https://app.composio.dev/),在 Settings → API Keys 中创建 API Key 并写入 `.env`。
+2. 在 Connections 页面搜索 Twitter,完成 OAuth 授权后复制 Connection ID(`ca_xxx`)。
+3. 运行 `npm run composio:connection` 或查看连接详情,将输出的 `user_id` 填入 `.env` 的 `COMPOSIO_USER_ID`。
+4. 复制示例配置: `cp config/twitter-accounts.example.json config/twitter-accounts.json`
+5. 编辑 `config/twitter-accounts.json`,填写需要关注的推主。未配置推主时会使用 `keywords` 列表进行回退搜索。
+
+> ⚠️ `config/twitter-accounts.json` 已在 `.gitignore` 中排除,请勿提交包含个人账号信息的配置
+
 ### 4. 配置过滤规则
 
 编辑 \`config/filter-rules.json\` 文件,设置你的正反面样例:
@@ -164,7 +181,9 @@ ai-news-collector/
 │   ├── collectors/       # 数据采集器
 │   │   ├── base.js      # 采集器基类
 │   │   ├── aibase.js    # AIBase 采集器
-│   │   └── zsxq.js      # 知识星球采集器
+│   │   ├── zsxq.js      # 知识星球采集器
+│   │   ├── wechat-mp.js # 微信公众号采集器
+│   │   └── twitter.js   # Twitter 采集器
 │   ├── services/        # 核心服务
 │   │   ├── llm-client.js    # LLM 客户端
 │   │   ├── orchestrator.js  # 流程编排器
@@ -180,7 +199,12 @@ ai-news-collector/
 │   │   └── logger.js    # 日志工具
 │   └── index.js         # CLI 入口
 ├── config/              # 配置文件
-│   └── filter-rules.json  # 过滤规则
+│   ├── filter-rules-*.json        # 各数据源过滤规则
+│   ├── wechat-accounts.json       # 微信公众号列表(已忽略提交)
+│   └── twitter-accounts.json      # Twitter 推主配置(已忽略提交)
+├── scripts/             # 实用脚本
+│   ├── composio-connection-info.js # 辅助查询连接 user_id
+│   └── twitter-demo.js            # Twitter 采集 Demo
 ├── output/              # 输出目录(自动保存带时间戳的 Markdown 报告)
 ├── .env.example         # 环境变量示例
 └── package.json
@@ -193,6 +217,9 @@ ai-news-collector/
 | 变量名 | 必填 | 默认值 | 说明 |
 |--------|------|--------|------|
 | DEEPSEEK_API_KEY | 是 | - | DeepSeek API 密钥 |
+| COMPOSIO_API_KEY | 否 | - | Composio API Key, 用于调用 Twitter 工具 |
+| COMPOSIO_CONNECTION_ID | 否 | - | Composio Twitter 连接 ID, 形如 `ca_xxx` |
+| COMPOSIO_USER_ID | 否 | - | 连接对应的 `user_id`, 可通过 `npm run composio:connection` 获取 |
 | ZSXQ_COOKIE | 否 | - | 知识星球 Cookie (采集知识星球时需要) |
 | LLM_MODEL | 否 | deepseek-chat | 使用的模型 |
 | LLM_MAX_TOKENS | 否 | 500 | 最大输出 token 数 |

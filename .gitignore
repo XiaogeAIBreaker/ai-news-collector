@@ -53,6 +53,7 @@ temp/
 
 # 配置隐私文件
 config/wechat-accounts.json
+config/twitter-accounts.json
 
 # 输出文件
 output/

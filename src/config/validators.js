@@ -219,3 +219,132 @@ export function validateZSXQGroups(groups) {
     errors
   };
 }
+
+/**
+ * 验证 Twitter 推主配置
+ * @param {Object} config - Twitter 配置对象
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+export function validateTwitterAccounts(config) {
+  const errors = [];
+
+  if (typeof config !== 'object' || config === null) {
+    return { valid: false, errors: ['配置必须是对象'] };
+  }
+
+  const accounts = config.accounts;
+  const globalConfig = config.config;
+
+  if (accounts !== undefined && !Array.isArray(accounts)) {
+    errors.push('accounts 必须是数组');
+  } else if (Array.isArray(accounts)) {
+    accounts.forEach((account, index) => {
+      const prefix = `推主[${index}]`;
+
+      if (typeof account !== 'object' || account === null) {
+        errors.push(`${prefix}: 必须是对象`);
+        return;
+      }
+
+      if (!account.handle || typeof account.handle !== 'string' || account.handle.trim() === '') {
+        errors.push(`${prefix}: handle 是必填字段并且必须是非空字符串`);
+      } else if (account.handle.includes(' ')) {
+        errors.push(`${prefix}: handle 不能包含空格`);
+      } else if (account.handle.startsWith('@')) {
+        errors.push(`${prefix}: handle 不需要包含 @ 前缀`);
+      }
+
+      if (!account.displayName || typeof account.displayName !== 'string') {
+        errors.push(`${prefix}: displayName 是必填字段并且必须是字符串`);
+      }
+
+      if (account.description && typeof account.description !== 'string') {
+        errors.push(`${prefix}: description 必须是字符串`);
+      }
+
+      if (account.query && typeof account.query !== 'string') {
+        errors.push(`${prefix}: query 必须是字符串`);
+      }
+
+      if (account.languages && !Array.isArray(account.languages)) {
+        errors.push(`${prefix}: languages 必须是字符串数组`);
+      } else if (Array.isArray(account.languages)) {
+        account.languages.forEach((lang, langIndex) => {
+          if (typeof lang !== 'string' || lang.trim() === '') {
+            errors.push(`${prefix}.languages[${langIndex}]: 必须是非空字符串`);
+          }
+        });
+      }
+
+      if (account.tags && !Array.isArray(account.tags)) {
+        errors.push(`${prefix}: tags 必须是字符串数组`);
+      } else if (Array.isArray(account.tags)) {
+        account.tags.forEach((tag, tagIndex) => {
+          if (typeof tag !== 'string' || tag.trim() === '') {
+            errors.push(`${prefix}.tags[${tagIndex}]: 必须是非空字符串`);
+          }
+        });
+      }
+
+      if (account.enabled !== undefined && typeof account.enabled !== 'boolean') {
+        errors.push(`${prefix}: enabled 必须是布尔值`);
+      }
+    });
+  }
+
+  if (globalConfig !== undefined) {
+    if (typeof globalConfig !== 'object' || globalConfig === null) {
+      errors.push('config 必须是对象');
+    } else {
+      if (globalConfig.sinceHours !== undefined) {
+        if (typeof globalConfig.sinceHours !== 'number' ||
+            globalConfig.sinceHours <= 0 ||
+            globalConfig.sinceHours > 168) {
+          errors.push('config.sinceHours 必须是 1-168 之间的数字');
+        }
+      }
+
+      if (globalConfig.maxResultsPerPage !== undefined) {
+        if (typeof globalConfig.maxResultsPerPage !== 'number' ||
+            globalConfig.maxResultsPerPage < 10 ||
+            globalConfig.maxResultsPerPage > 100) {
+          errors.push('config.maxResultsPerPage 必须是 10-100 之间的数字');
+        }
+      }
+
+      if (globalConfig.defaultLanguages !== undefined) {
+        if (!Array.isArray(globalConfig.defaultLanguages)) {
+          errors.push('config.defaultLanguages 必须是字符串数组');
+        } else {
+          globalConfig.defaultLanguages.forEach((lang, index) => {
+            if (typeof lang !== 'string' || lang.trim() === '') {
+              errors.push(`config.defaultLanguages[${index}]: 必须是非空字符串`);
+            }
+          });
+        }
+      }
+
+      if (globalConfig.defaultQuerySuffix !== undefined &&
+          typeof globalConfig.defaultQuerySuffix !== 'string') {
+        errors.push('config.defaultQuerySuffix 必须是字符串');
+      }
+    }
+  }
+
+  if (config.keywords !== undefined) {
+    if (!Array.isArray(config.keywords)) {
+      errors.push('keywords 必须是字符串数组');
+    } else {
+      config.keywords.forEach((keyword, index) => {
+        if (typeof keyword !== 'string' || keyword.trim() === '') {
+          errors.push(`keywords[${index}]: 必须是非空字符串`);
+        }
+      });
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+}

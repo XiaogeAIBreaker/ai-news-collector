@@ -1,7 +1,7 @@
 # Project Context
 
 ## Purpose
-AI 新闻采集器 - 从 AIBase 等数据源自动采集最新 AI 相关新闻,使用 DeepSeek LLM 根据用户提供的正反面样例进行智能评分和过滤,最终输出高质量新闻到 Markdown 文档。
+AI 新闻采集器 - 从 AIBase、知识星球、微信公众号与 Twitter 等数据源自动采集最新 AI 相关新闻,使用 DeepSeek LLM 根据用户提供的正反面样例进行智能评分和过滤,最终输出高质量新闻到 Markdown 文档。
 
 **核心目标**:
 - 自动化采集 AI 领域最新资讯
@@ -10,7 +10,7 @@ AI 新闻采集器 - 从 AIBase 等数据源自动采集最新 AI 相关新闻,�
 - 生成结构化的 Markdown 报告
 
 ### 核心功能
-- 多数据源采集: 当前内置 AIBase、知识星球、微信公众号采集器,默认启用微信公众号(其余可按需开启)
+- 多数据源采集: 当前内置 AIBase、知识星球、微信公众号、Twitter 采集器,默认启用微信公众号(其余可按需开启)
 - DeepSeek LLM 评分: 结合 Few-shot 样例输出 0-10 分并附带评分理由
 - 动态过滤策略: 自动保留得分最高的 10-30% 内容,默认目标 15 条
 - Markdown 报告生成: 输出按数据源分组、带统计摘要的报告文件
@@ -34,6 +34,9 @@ AI 新闻采集器 - 从 AIBase 等数据源自动采集最新 AI 相关新闻,�
 
 ### 环境变量
 - `DEEPSEEK_API_KEY` (必填): DeepSeek API 密钥
+- `COMPOSIO_API_KEY` (可选): Twitter 采集所需的 Composio API Key
+- `COMPOSIO_CONNECTION_ID` (可选): Composio Twitter 连接 ID,形如 `ca_xxx`
+- `COMPOSIO_USER_ID` (可选): 对应连接的 `user_id`,可通过脚本辅助查询
 - `LLM_MODEL` / `LLM_TEMPERATURE` / `LLM_MAX_TOKENS` (可选): 覆盖 `LLMClient` 默认参数
 - `ZSXQ_COOKIE` (可选): 采集知识星球时所需的 Cookie
 - `WECHAT_TOKEN` / `WECHAT_COOKIE` (必填,启用微信公众号采集时): 公众号后台凭证,需手动从后台获取; 未配置将导致采集失败
@@ -42,6 +45,7 @@ AI 新闻采集器 - 从 AIBase 等数据源自动采集最新 AI 相关新闻,�
 ### 配置文件
 - `config/filter-rules-*.json`: 各数据源的 Few-shot 样例与阈值 (必须包含正反面样例)
 - `config/wechat-accounts.json`: 待采集的公众号列表 (通过 `fakeid` 标识)
+- `config/twitter-accounts.json`: Twitter 推主配置与查询参数 (默认忽略提交)
 - `.env`: 环境变量定义,忽略提交
 - `.wechat-token.json`: 运行期自动生成,缓存公众号 token/cookie (已设置 600 权限)
 
@@ -49,6 +53,8 @@ AI 新闻采集器 - 从 AIBase 等数据源自动采集最新 AI 相关新闻,�
 - `npm start`: 运行主流程 (单次执行)
 - `npm run dev`: 监听模式,用于本地调试
 - `npm test` / `npm run test:*`: 执行 Vitest 测试套件
+- `npm run demo:twitter`: 使用 Composio 快速验证 Twitter 查询
+- `npm run composio:connection`: 输出指定 Connection ID 对应的 `user_id`
 
 ### 输出与产物
 - Markdown 报告默认写入 `output/filtered-news-YYYYMMDD-HHmmss.md`
@@ -97,7 +103,7 @@ AI 新闻采集器 - 从 AIBase 等数据源自动采集最新 AI 相关新闻,�
    ├── storage/      # 状态存储层 - 本地 token、缓存
    └── utils/        # 工具层 - 日志、时间、延迟等通用工具
    ```
-   - `collectors/`: 包含 `BaseCollector` 抽象类及 `AIBaseCollector`、`ZSXQCollector`、`WeChatMPCollector`
+  - `collectors/`: 包含 `BaseCollector` 抽象类及 `AIBaseCollector`、`ZSXQCollector`、`WeChatMPCollector`、`TwitterCollector`
    - `services/`: `Orchestrator` 编排评分流程, `LLMClient` 调用 DeepSeek API, `WeChatLoginService` 加载公众号凭证, `retry.js` 提供指数退避
    - `models/`: `NewsItem` 数据模型与批量验证函数
    - `storage/`: `TokenStore` 负责 `.wechat-token.json` 的读写与权限控制
@@ -148,6 +154,7 @@ AI 新闻采集器 - 从 AIBase 等数据源自动采集最新 AI 相关新闻,�
    - AIBase: 国内主流 AI 资讯网站,需要处理动态加载内容
    - 网页结构可能频繁变化,需要定期维护选择器
    - 微信公众号: 需维护 token/cookie、处理过期与接口限流 (`rateLimit` 随机延迟 3-5s)
+   - Twitter: 通过 Composio `TWITTER_RECENT_SEARCH` 接口拉取推文,依赖连接 ID 与 user_id,默认抓取近 7 天内容
 
 2. **新闻质量评估**:
    - 技术突破 > 产品发布 > 商业新闻 > 日常更新
@@ -215,17 +222,24 @@ AI 新闻采集器 - 从 AIBase 等数据源自动采集最新 AI 相关新闻,�
    - 认证: token + cookie,需在公众号后台获取后配置到环境变量
    - 限流: 采用 3-5s 随机延迟,避免触发风控
    - Token 生命周期约 7 天,过期后触发重新登录并刷新 `.wechat-token.json`
+3. **Composio 平台**:
+   - 端点: https://api.composio.dev
+   - 认证: API Key (环境变量 `COMPOSIO_API_KEY`)
+   - 用途: 统一管理 Twitter OAuth 连接,调用 `TWITTER_RECENT_SEARCH` 等工具
+   - 需在 `.env` 中维护 `COMPOSIO_CONNECTION_ID` 与 `COMPOSIO_USER_ID`
 
 ### 数据源网站
 - **AIBase**: https://www.aibase.com, 静态页面,易受结构变动影响
 - **知识星球**: https://api.zsxq.com / https://wx.zsxq.com, 依赖有效 Cookie
 - **微信公众号**: https://mp.weixin.qq.com, 文章列表通过后台接口返回
+- **Twitter**: https://api.x.com/2, 通过 Composio 转发,受官方速率限制影响
 
 ### 开发依赖
 - **axios**: HTTP 客户端,用于静态页面抓取
 - **cheerio**: HTML 解析器,类似 jQuery 的 API
 - **puppeteer**: 无头浏览器,用于处理动态加载内容
 - **openai**: OpenAI SDK,用于调用 DeepSeek API (兼容 OpenAI 接口)
+- **@composio/core**: Composio 官方 SDK,用于执行 Twitter 工具
 - **string-similarity**: 文本相似度计算,用于去重
 - **dotenv**: 环境变量加载
 

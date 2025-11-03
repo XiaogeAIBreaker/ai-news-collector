@@ -192,6 +192,8 @@ ${reason}`;
     if (metadata.author) parts.push(`**作者**: ${metadata.author}`);
     if (metadata.likes !== undefined) parts.push(`👍 ${metadata.likes}`);
     if (metadata.comments !== undefined) parts.push(`💬 ${metadata.comments}`);
+    if (metadata.retweets !== undefined) parts.push(`🔁 ${metadata.retweets}`);
+    if (metadata.quotes !== undefined) parts.push(`📌 ${metadata.quotes}`);
     if (metadata.views !== undefined) parts.push(`👀 ${metadata.views}`);
 
     return parts.length > 0 ? `\n**互动数据**: ${parts.join(' | ')}  ` : '';
