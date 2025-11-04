@@ -1,11 +1,11 @@
 <div align="center">
     <h1>🌱 信息收集过滤器</h1>
-    <h3><em></em></h3>
 </div>
 
 <p align="center">
     <strong>致力于从海量资讯中，筛选出精准有效的信息，提升信息获取效率</strong>
 </p>
+
 ---
 
 ![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-3C873A)
