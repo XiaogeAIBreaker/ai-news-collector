@@ -1,16 +1,24 @@
-# AI 信息采集过滤器
+<div align="center">
+    <h1>🌱 信息收集过滤器</h1>
+    <h3><em></em></h3>
+</div>
+
+<p align="center">
+    <strong>致力于从海量资讯中，筛选出精准有效的信息，提升信息获取效率</strong>
+</p>
+---
 
 ![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-3C873A)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
+
+## 🤔 干啥的？
 
 公众号、星球、资讯站、特推...（以后还会有更多）
 
 信息量爆炸？一条条刷？低质量营销号？没时间？
 
 **AI 信息采集过滤器统统，统统给你搞定🔥**
-
-> ✨ **愿景**: 致力于从海量资讯中，筛选出精准有效的信息，提升信息获取效率
 
 ## 功能特性
 
