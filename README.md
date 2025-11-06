@@ -1,9 +1,10 @@
 <div align="center">
+    <img src="https://cdn.ziliu.online/images/2025/11/8936b26f-bc51-4e66-a1ac-018ebd1aef33.jpg" width="200" />
     <h1>🌱 信息收集过滤器</h1>
 </div>
 
 <p align="center">
-    <strong>致力于从海量资讯中，筛选出精准有效的信息，提升信息获取效率</strong>
+    <strong>专注于从海量资讯中，筛选出精准有效的信息，提升信息获取效率</strong>
 </p>
 
 ---
