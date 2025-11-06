@@ -129,12 +129,10 @@ npm start
 ![](https://cdn.ziliu.online/images/2025/11/47435f6b-17c7-4435-8c05-a8d017875e89.jpg)
 
 ## 💬 欢迎联系我
- ![](https://cdn.ziliu.online/images/2025/11/cd418ef1-dd65-403e-8f8c-f1b7ecf1f5f0.jpg)
+<img src="https://cdn.ziliu.online/images/2025/11/cd418ef1-dd65-403e-8f8c-f1b7ecf1f5f0.jpg" width="200" />
 
 ## 📄 开源协议
 
 本项目基于 MIT License
 
 ---
-
-**⭐ 如果这个项目对你有帮助，请给个 Star 支持一下！**
