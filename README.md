@@ -16,20 +16,20 @@
 
 公众号、知识星球、各大资讯站、特推...
 
-信息量爆炸？一条条刷？低质量营销号？没时间？
+信息量爆炸？一条条刷？低质量营销号？没时间？漏消息？...
 
 **AI 信息采集过滤器统统，分分钟给你搞定🤓**
 
 ## 🔥 功能特性
 
-- ✅ **多数据源采集**: 目前支持 AIBase、知识星球、微信公众号、Twitter...
+- ✅ **多数据源采集**: 目前支持 AIBase、知识星球、微信公众号、Twitter...(以后会支持更多)
 - ✅ **LLM 评分**: 使用 DeepSeek API 根据用户偏好对内容进行智能评分
 - ✅ **动态过滤**: 自动保留得分最高的 10-30% 内容
 - ✅ **配置化**: 通过 JSON 配置文件设置正反面样例
-- ✅ **低成本**: 使用 DeepSeek API,每次运行约 $0.01-0.02
+- ✅ **低成本**: 使用 DeepSeek API，每次运行约 几毛钱
 - ✅ **完整日志**: 彩色日志输出,清晰展示采集和过滤进度
 - ✅ **按源分组**: Markdown 报告按数据源分组展示
-- 🆕 **统一时间窗口**: `config/collection-window.json` 一次性控制所有数据源的采集天数
+- ✅ **统一时间窗口**: 可自行选择采集n天的数据
 
 ## ⚡️ 快速开始
 
@@ -39,7 +39,7 @@
 - DeepSeek API Key ([获取地址](https://platform.deepseek.com/api_keys))
 - (可选) 知识星球账号
 - (可选) 微信公众号账号
-- (可选) Twitter账号
+- (可选) Twitter账号（需要网络环境）
 
 ### 2. 安装依赖
 
@@ -69,8 +69,11 @@ COMPOSIO_API_KEY=xxxxxxxxx
 COMPOSIO_CONNECTION_ID=xxxxxxxxx
 COMPOSIO_USER_ID=xxxxxxxxx
 ```
-
-[如何获取微信公众号 Token 和 Cookie](docs/how-to-get-wechat-token.md)
+如何配置请见👇
+[如何配置DeepSeek](docs/.env配置/如何配置DeepSeek.md)
+[如何接入公众号](docs/.env配置/如何接入公众号.md)
+[如何接入知识星球](docs/.env配置/如何接入知识星球.md)
+[如何接入推特](docs/.env配置/如何接入推特.md)
 
 
 
