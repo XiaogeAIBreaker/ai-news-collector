@@ -132,3 +132,9 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - 识别可并行化的任务
 - 避免不必要的同步
 - 注意线程安全问题
+
+## Active Technologies
+- JavaScript (Node.js 18+) (002-youtube-data-source)
+
+## Recent Changes
+- 002-youtube-data-source: Added JavaScript (Node.js 18+)

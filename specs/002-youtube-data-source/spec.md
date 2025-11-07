@@ -1,6 +1,6 @@
 # Feature Specification: YouTube 数据源集成
 
-**Feature Branch**: `001-youtube-data-source`
+**Feature Branch**: `002-youtube-data-source`
 **Created**: 2025-11-07
 **Status**: Draft
 **Input**: User description: "支持Youtube数据源,数据获取方式参考Twitter使用Composio"
