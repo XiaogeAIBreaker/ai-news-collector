@@ -1,7 +1,7 @@
 # 实现任务清单
 
 ## 1. 配置与准备
-- [x] 1.1 在 `.env.example` 添加 `COMPOSIO_API_KEY`、`COMPOSIO_CONNECTION_ID`、`COMPOSIO_USER_ID` 等认证说明(含如何在控制台查找 user_id)
+- [x] 1.1 在 `.env.example` 添加 `COMPOSIO_API_KEY`、`COMPOSIO_CONNECTION_ID_TWITTER`、`COMPOSIO_USER_ID_TWITTER` 等认证说明(含如何在控制台查找 user_id)
 - [x] 1.2 在 `config/` 下新增 `twitter-accounts.example.json` 及说明文档(需说明推主字段、可选自定义查询、标签等)
 - [x] 1.3 扩展 `src/config/datasources.js` 与 `config/validators.js` 支持 Twitter 配置,包含推主列表与默认查询生成
 - [x] 1.4 提供脚本/说明,从 Composio 连接信息中读取默认 `userId` 并验证

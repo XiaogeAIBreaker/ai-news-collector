@@ -13,7 +13,7 @@
   - 在 `datasources.js` 中新增 Twitter 数据源,默认最大抓取 50 条
   - 新增 `config/twitter-accounts.json`(含推主、可选自定义查询、标签等),并提供校验器
   - 推主配置支持生成默认查询(`from:<handle> -is:retweet`),也可在配置中覆盖
-  - 在 `.env.example` 添加 Composio 所需的 `COMPOSIO_API_KEY`、`COMPOSIO_CONNECTION_ID`、`COMPOSIO_USER_ID` 等配置说明
+  - 在 `.env.example` 添加 Composio 所需的 `COMPOSIO_API_KEY`、`COMPOSIO_CONNECTION_ID_TWITTER`、`COMPOSIO_USER_ID_TWITTER` 等配置说明
 - **LLM 评分与输出集成**
   - 为 Twitter 配置独立的过滤规则文件 `filter-rules-twitter.json`
   - 确保主流程加载 Twitter 结果并写入带时间戳的 Markdown 报告

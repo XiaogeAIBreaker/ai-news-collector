@@ -8,7 +8,7 @@
 ## 技术选型
 - **平台**: Composio (https://app.composio.dev)
 - **SDK**: `@composio/core` (Node.js 版本)
-- **认证方式**: `.env` 提供 `COMPOSIO_API_KEY`; 默认连接与实体信息通过 `COMPOSIO_CONNECTION_ID`、`COMPOSIO_USER_ID` 注入,以匹配 Composio 中的 connected account
+- **认证方式**: `.env` 提供 `COMPOSIO_API_KEY`; 默认连接与实体信息通过 `COMPOSIO_CONNECTION_ID_TWITTER`、`COMPOSIO_USER_ID_TWITTER` 注入,以匹配 Composio 中的 connected account
 - **查询策略**:
   - 默认关键词: `["AI", "Artificial Intelligence", "大模型", "AIGC"]`
   - 推主配置默认生成 `from:<handle> -is:retweet` 查询,也允许自定义覆盖

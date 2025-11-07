@@ -30,7 +30,7 @@ TBD - created by archiving change add-twitter-collector. Update Purpose after ar
 - **AND** 若未提供,应退回默认值 (`from:<handle> -is:retweet`, 内置语言/时间窗口, `max_results`=100)
 
 #### Scenario: userId 与连接匹配
-- **WHEN** 读取环境变量或配置中的 `COMPOSIO_USER_ID`
+- **WHEN** 读取环境变量或配置中的 `COMPOSIO_USER_ID_TWITTER`
 - **AND** 使用该 ID 调用 `TWITTER_RECENT_SEARCH`
 - **THEN** 采集器必须验证该 userId 与 `connectedAccountId` 属于同一 connected account
 - **AND** 不匹配时应记录错误并跳过采集

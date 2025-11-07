@@ -35,8 +35,8 @@ AI 新闻采集器 - 从 AIBase、知识星球、微信公众号与 Twitter 等�
 ### 环境变量
 - `DEEPSEEK_API_KEY` (必填): DeepSeek API 密钥
 - `COMPOSIO_API_KEY` (可选): Twitter 采集所需的 Composio API Key
-- `COMPOSIO_CONNECTION_ID` (可选): Composio Twitter 连接 ID,形如 `ca_xxx`
-- `COMPOSIO_USER_ID` (可选): 对应连接的 `user_id`,可通过脚本辅助查询
+- `COMPOSIO_CONNECTION_ID_TWITTER` (可选): Composio Twitter 连接 ID,形如 `ca_xxx`
+- `COMPOSIO_USER_ID_TWITTER` (可选): 对应连接的 `user_id`,可通过脚本辅助查询
 - `LLM_MODEL` / `LLM_TEMPERATURE` / `LLM_MAX_TOKENS` (可选): 覆盖 `LLMClient` 默认参数
 - `ZSXQ_COOKIE` (可选): 采集知识星球时所需的 Cookie
 - `WECHAT_TOKEN` / `WECHAT_COOKIE` (必填,启用微信公众号采集时): 公众号后台凭证,需手动从后台获取; 未配置将导致采集失败
@@ -226,7 +226,7 @@ AI 新闻采集器 - 从 AIBase、知识星球、微信公众号与 Twitter 等�
    - 端点: https://api.composio.dev
    - 认证: API Key (环境变量 `COMPOSIO_API_KEY`)
    - 用途: 统一管理 Twitter OAuth 连接,调用 `TWITTER_RECENT_SEARCH` 等工具
-   - 需在 `.env` 中维护 `COMPOSIO_CONNECTION_ID` 与 `COMPOSIO_USER_ID`
+   - 需在 `.env` 中维护 `COMPOSIO_CONNECTION_ID_TWITTER` 与 `COMPOSIO_USER_ID_TWITTER`
 
 ### 数据源网站
 - **AIBase**: https://www.aibase.com, 静态页面,易受结构变动影响

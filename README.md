@@ -68,8 +68,8 @@ WECHAT_COOKIE='xxxxxxxxxxx'
 ZSXQ_COOKIE='xxxxxxxxxxx'
 
 COMPOSIO_API_KEY=xxxxxxxxx
-COMPOSIO_CONNECTION_ID=xxxxxxxxx
-COMPOSIO_USER_ID=xxxxxxxxx
+COMPOSIO_CONNECTION_ID_TWITTER=xxxxxxxxx
+COMPOSIO_USER_ID_TWITTER=xxxxxxxxx
 ```
 
 如何配置请见👇

@@ -10,8 +10,8 @@ import { Composio } from '@composio/core';
 
 async function main() {
   const apiKey = process.env.COMPOSIO_API_KEY;
-  const connectionId = process.env.COMPOSIO_CONNECTION_ID;
-  const userId = process.env.COMPOSIO_USER_ID || 'default';
+  const connectionId = process.env.COMPOSIO_CONNECTION_ID_TWITTER;
+  const userId = process.env.COMPOSIO_USER_ID_TWITTER || 'default';
   const query = process.argv[2] || 'AI news';
   const limit = Number.parseInt(process.env.TWITTER_DEMO_LIMIT || '5', 10);
 
@@ -21,7 +21,7 @@ async function main() {
   }
 
   if (!connectionId) {
-    console.error('缺少环境变量 COMPOSIO_CONNECTION_ID');
+    console.error('缺少环境变量 COMPOSIO_CONNECTION_ID_TWITTER');
     process.exit(1);
   }
 

@@ -73,11 +73,11 @@ export class TwitterCollector extends BaseCollector {
    */
   async collect() {
     const apiKey = process.env.COMPOSIO_API_KEY;
-    const connectionId = process.env.COMPOSIO_CONNECTION_ID;
-    const userId = process.env.COMPOSIO_USER_ID;
+    const connectionId = process.env.COMPOSIO_CONNECTION_ID_TWITTER;
+    const userId = process.env.COMPOSIO_USER_ID_TWITTER;
 
     if (!apiKey || !connectionId || !userId) {
-      this.logger.warn('缺少 Composio 环境变量(COMPOSIO_API_KEY/COMPOSIO_CONNECTION_ID/COMPOSIO_USER_ID),跳过 Twitter 采集');
+      this.logger.warn('缺少 Composio 环境变量(COMPOSIO_API_KEY/COMPOSIO_CONNECTION_ID_TWITTER/COMPOSIO_USER_ID_TWITTER),跳过 Twitter 采集');
       return [];
     }
 

@@ -9,7 +9,7 @@ import 'dotenv/config';
 import { Composio } from '@composio/core';
 
 const apiKey = process.env.COMPOSIO_API_KEY;
-const connectionId = process.argv[2] || process.env.COMPOSIO_CONNECTION_ID;
+const connectionId = process.argv[2] || process.env.COMPOSIO_CONNECTION_ID_TWITTER;
 
 if (!apiKey) {
   console.error('缺少环境变量 COMPOSIO_API_KEY');
@@ -17,7 +17,7 @@ if (!apiKey) {
 }
 
 if (!connectionId) {
-  console.error('请通过命令参数或环境变量提供 COMPOSIO_CONNECTION_ID');
+  console.error('请通过命令参数或环境变量提供 COMPOSIO_CONNECTION_ID_TWITTER');
   console.error('示例: COMPOSIO_API_KEY=xxx node scripts/composio-connection-info.js ca_xxx');
   process.exit(1);
 }
@@ -36,7 +36,7 @@ async function main() {
     console.log(`  created_at    : ${raw.created_at}`);
     console.log(`  updated_at    : ${raw.updated_at}`);
     console.log('');
-    console.log('将以上 user_id 填入环境变量 COMPOSIO_USER_ID 中。');
+    console.log('将以上 user_id 填入环境变量 COMPOSIO_USER_ID_TWITTER 中。');
   } catch (error) {
     console.error('查询连接失败:', error.message);
     if (error.response?.data) {
