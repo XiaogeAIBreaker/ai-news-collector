@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as cheerio from 'cheerio';
 import { BaseCollector } from './base.js';
 import { NewsItem } from '../models/news-item.js';
 import WeChatLoginService from '../services/wechat-login.js';
@@ -26,6 +27,11 @@ export class WeChatMPCollector extends BaseCollector {
     this.rateLimit = config.config?.rateLimit || {
       minDelay: 3000,
       maxDelay: 5000
+    };
+
+    this.articleFetchDelay = config.config?.articleFetchDelay || {
+      minDelay: 250,
+      maxDelay: 600
     };
 
     this.currentToken = null;
@@ -136,7 +142,8 @@ export class WeChatMPCollector extends BaseCollector {
         this.assertSuccess(response);
 
         const articles = this.parseResponse(response);
-        const newsItems = this.convertToNewsItems(articles, account.nickname);
+        let newsItems = this.convertToNewsItems(articles, account.nickname);
+        newsItems = await this.enrichWithArticleBodies(newsItems);
         const { recentNews, outdatedNews } = this.filterRecentNewsItems(newsItems);
 
         if (outdatedNews.length > 0) {
@@ -244,6 +251,75 @@ export class WeChatMPCollector extends BaseCollector {
    */
   convertToNewsItems(articles, accountName) {
     return articles.map(article => this.buildNewsItem(article, accountName));
+  }
+
+  /**
+   * 补充正文内容,供后续评分使用
+   * @param {NewsItem[]} newsItems
+   * @returns {Promise<NewsItem[]>}
+   */
+  async enrichWithArticleBodies(newsItems) {
+    if (!Array.isArray(newsItems) || newsItems.length === 0) {
+      return newsItems;
+    }
+
+    const enriched = [];
+
+    for (const item of newsItems) {
+      if (!item?.url) {
+        enriched.push(item);
+        continue;
+      }
+
+      const { content, snippet } = await this.fetchArticleContent(item.url);
+
+      if (content) {
+        item.content = content;
+        item.metadata = {
+          ...item.metadata,
+          contentLength: content.length
+        };
+      }
+
+      if (snippet) {
+        item.summary = this.normalizeSummary(snippet, item.summary);
+      }
+
+      enriched.push(item);
+
+      const { minDelay = 200, maxDelay = 400 } = this.articleFetchDelay || {};
+      if (maxDelay > 0) {
+        await delay(getRandomDelay(minDelay, maxDelay));
+      }
+    }
+
+    return enriched;
+  }
+
+  /**
+   * 抓取公众号文章正文
+   * @param {string} url
+   * @returns {Promise<{content: string, snippet: string}>}
+   */
+  async fetchArticleContent(url) {
+    if (!url) {
+      return { content: '', snippet: '' };
+    }
+
+    try {
+      const response = await axios.get(url, {
+        headers: this.buildArticleRequestHeaders(),
+        timeout: this.config.timeout || 30000
+      });
+
+      const content = extractWeChatArticleText(response.data);
+      const snippet = buildWeChatContentSnippet(content);
+
+      return { content, snippet };
+    } catch (error) {
+      this.logger.debug(`获取正文失败: ${error.message}`);
+      return { content: '', snippet: '' };
+    }
   }
 
   /**
@@ -364,6 +440,19 @@ export class WeChatMPCollector extends BaseCollector {
   }
 
   /**
+   * 构建正文抓取请求头
+   * @returns {Object}
+   */
+  buildArticleRequestHeaders() {
+    return {
+      Referer: 'https://mp.weixin.qq.com/',
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
+    };
+  }
+
+  /**
    * 标准化摘要,保证长度符合要求
    * @param {string} digest
   * @param {string} fallback
@@ -459,4 +548,40 @@ export class WeChatMPCollector extends BaseCollector {
   hasAccounts() {
     return Array.isArray(this.accounts) && this.accounts.length > 0;
   }
+}
+
+/**
+ * 从公众号文章 HTML 中提取正文文本
+ * @param {string} html
+ * @returns {string}
+ */
+export function extractWeChatArticleText(html) {
+  if (!html) return '';
+
+  try {
+    const $ = cheerio.load(html);
+    const container = $('#js_content').length ? $('#js_content') : $('.rich_media_content');
+
+    if (container.length === 0) {
+      return $('body').text().replace(/\s+/g, ' ').trim();
+    }
+
+    container.find('script, style').remove();
+    return container.text().replace(/\s+/g, ' ').trim();
+  } catch (error) {
+    return '';
+  }
+}
+
+/**
+ * 根据正文构建摘要片段
+ * @param {string} content
+ * @param {number} maxLength
+ * @returns {string}
+ */
+export function buildWeChatContentSnippet(content, maxLength = 600) {
+  if (!content) return '';
+  const normalized = content.replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+  return normalized.slice(0, maxLength);
 }
