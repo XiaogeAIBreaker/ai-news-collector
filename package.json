@@ -1,6 +1,6 @@
 {
   "name": "ai-news-collector",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "description": "AI 新闻采集器 - 从多个数据源采集 AI 相关新闻并使用 LLM 智能过滤",
   "main": "src/index.js",

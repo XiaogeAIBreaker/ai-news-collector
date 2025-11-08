@@ -141,6 +141,11 @@ npm start
 |------|------|
 | ![](https://cdn.ziliu.online/images/2025/11/2a4648cf-ec7a-463f-8dae-02384b16d5a1.jpg) | ![](https://cdn.ziliu.online/images/2025/11/47435f6b-17c7-4435-8c05-a8d017875e89.jpg)|
 
+## 🚀 版本更新
+
+- 0.1.0: 支持了 Youtube 🆕
+- 0.0.1: 上线
+
 
 ## 💬 欢迎联系我
 
@@ -150,7 +155,7 @@ npm start
 - 🔭 目前在大厂担任 技术负责人
 - 🔍 具备全栈开发能力，包括设计、后台、客户端等全栈研发经验
 - 📚 [Trae Expert](https://lcnziv86vkx6.feishu.cn/wiki/JkuHwnMseiiO6fkm3h1cz41Gn8c)
-- 🎓 AI编程技术分享者，专注AI技术教学
+- 🤓 AI编程技术分享者，专注AI技术教学
 - 🤖 长期聚焦 AI 方向（尤其在 AI 编程、智能 Agent 领域有持续的研究与实践），曾先后在公司内部技术分享会及行业外部交流活动中，多次围绕 AI 相关技术主题做分享；业余时间我也会持续深耕 AI 前沿技术，保持对行业动态的敏锐关注。
 
 **有Bug？有需求？想聊AI？想面基？欢迎 🤗**
