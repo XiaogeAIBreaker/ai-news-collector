@@ -23,7 +23,7 @@
 
 ## 🔥 功能特性
 
-- ✅ **多数据源采集**: 目前支持 [AIBase](https://www.aibase.com/zh)、知识星球、微信公众号、Twitter...(以后会支持更多)
+- ✅ **多数据源采集**: 目前支持 [AIBase](https://www.aibase.com/zh)、知识星球、微信公众号、Twitter、YouTube...(以后会支持更多)
 - ✅ **公众号正文解析**: 自动抓取公众号文章全文, 让 LLM 评分更加精准
 - ✅ **LLM 评分**: 使用 DeepSeek API 根据用户偏好对内容进行智能评分
 - ✅ **动态过滤**: 自动保留得分最高的 10-30% 内容
@@ -42,6 +42,7 @@
 - (可选) 知识星球账号
 - (可选) 微信公众号账号
 - (可选) Twitter账号（需要网络环境）
+- (可选) YouTube账号（需要网络环境）
 
 ### 2. 安装依赖
 
@@ -70,6 +71,9 @@ ZSXQ_COOKIE='xxxxxxxxxxx'
 COMPOSIO_API_KEY=xxxxxxxxx
 COMPOSIO_CONNECTION_ID_TWITTER=xxxxxxxxx
 COMPOSIO_USER_ID_TWITTER=xxxxxxxxx
+
+COMPOSIO_CONNECTION_ID_YOUTUBE=ca_xxxxxx
+COMPOSIO_USER_ID_YOUTUBE=pg-test-xxxxxx
 ```
 
 如何配置请见👇
@@ -82,8 +86,10 @@ COMPOSIO_USER_ID_TWITTER=xxxxxxxxx
 
 - [如何接入推特](docs/.env配置/如何接入推特.md)
 
-### 4. 配置关注（公众号 / 知识星球 / 推特）
-需要配置要关注的 公众号 / 星球号 / 推特账号 （AIBase无需配置）
+- [如何接入YouTube](docs/.env配置/如何接入YouTube.md)
+
+### 4. 配置关注（公众号 / 知识星球 / 推特 / YouTube）
+需要配置要关注的 公众号 / 星球号 / 推特账号 / YouTube频道 （AIBase无需配置）
 
 配置文件在 \`config\/关注配置` 下
 
@@ -95,6 +101,8 @@ COMPOSIO_USER_ID_TWITTER=xxxxxxxxx
 - [如何配置关注的星球号](docs/关注配置/知识星球.md)
 
 - [如何配置关注的推特](docs/关注配置/推特.md)
+
+- [如何配置关注的YouTube频道](docs/关注配置/YouTube.md)
 
 ### 5. 配置偏好
 采集程序会根据配置的偏好，自动筛除 70% - 80% 无用信息，仅保留有效信息
@@ -113,7 +121,7 @@ npm start
 ```
 
 程序会自动:
-1. 读取启用的数据源配置 (AIBase / 知识星球 / 微信公众号 / Twitter)
+1. 读取启用的数据源配置 (AIBase / 知识星球 / 微信公众号 / Twitter / YouTube)
 2. 统一应用采集时间窗口、并发控制等运行参数
 3. 使用 DeepSeek LLM 结合正负向样例进行批量评分
 4. 根据动态阈值保留重点新闻

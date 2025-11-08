@@ -1,0 +1,62 @@
+{
+  "channels": [
+    {
+      "channelId": "UCxxxxxxxxxxxxxxxxxxxxxx",
+      "displayName": "频道显示名称(用于日志和报告)",
+      "handle": "@channelhandle",
+      "enabled": true,
+      "keywords": [],
+      "languages": ["zh", "en"],
+      "tags": ["AI", "Research"],
+      "maxItemsPerChannel": 20
+    },
+    {
+      "channelId": "UCyyyyyyyyyyyyyyyyyyyyyy",
+      "displayName": "示例频道2",
+      "handle": "@example2",
+      "enabled": true,
+      "tags": ["Tech", "News"],
+      "maxItemsPerChannel": 10
+    }
+  ],
+  "keywords": [
+    "AI",
+    "Machine Learning",
+    "大模型",
+    "人工智能"
+  ],
+  "config": {
+    "recentDays": 7,
+    "defaultMaxItemsPerChannel": 20,
+    "maxResultsPerKeyword": 15,
+    "maxResultsPerPage": 50,
+    "maxItemsPerChannel": 20,
+    "defaultLanguages": ["zh", "en"],
+    "queryPrefix": "-is:live",
+    "enableKeywordSearch": true,
+    "batchSize": 50,
+    "enableStatistics": true
+  },
+  "_comments": {
+    "channels": "频道配置列表",
+    "channels[].channelId": "【必填】YouTube 频道 ID,必须以 UC 开头,长度 24 字符。示例: UC_x5XG1OV2P6uZZ5FSM9Ttw",
+    "channels[].displayName": "【可选】频道显示名称,用于日志和报告输出,长度 1-100 字符",
+    "channels[].handle": "【可选】频道 @ 句柄,必须以 @ 开头,长度 2-30 字符。示例: @Google",
+    "channels[].enabled": "【可选】是否启用该频道,默认 true",
+    "channels[].keywords": "【可选】频道级关键词过滤,仅采集包含这些关键词的视频。数组元素长度 1-50 字符",
+    "channels[].languages": "【可选】语言偏好,ISO 639-1 代码(如 zh, en)。用于视频语言过滤",
+    "channels[].tags": "【可选】用户自定义标签,会传递到 NewsItem.metadata.tags。最多 10 个,每个 1-30 字符",
+    "channels[].maxItemsPerChannel": "【可选】该频道最多采集视频数,1-100 之间。优先级低于全局配置",
+    "keywords": "【可选】全局关键词列表,多个关键词会合并为 OR 查询。无频道配置时使用",
+    "config.recentDays": "【可选】仅采集最近 N 天的视频,1-30 之间。默认 7 天",
+    "config.defaultMaxItemsPerChannel": "【可选】每个频道默认最多采集视频数,1-100 之间。默认 20",
+    "config.maxResultsPerKeyword": "【可选】关键词搜索最多返回结果数,1-50 之间。默认 15",
+    "config.maxResultsPerPage": "【可选】单次 API 请求最大结果数,1-50 之间。默认 50",
+    "config.maxItemsPerChannel": "【可选】全局频道采集上限,优先级高于频道级配置,1-100 之间",
+    "config.defaultLanguages": "【可选】默认语言列表,ISO 639-1 代码数组。关键词搜索时使用第一个作为主语言",
+    "config.queryPrefix": "【可选】搜索查询前缀,用于过滤条件。默认 '-is:live' (排除直播)",
+    "config.enableKeywordSearch": "【可选】是否启用关键词搜索,默认 true",
+    "config.batchSize": "【可选】批量获取视频详情的批次大小,1-50 之间。默认 50",
+    "config.enableStatistics": "【可选】是否获取视频统计信息(观看/点赞/评论数),默认 true"
+  }
+}

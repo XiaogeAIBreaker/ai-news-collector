@@ -25,9 +25,9 @@
 
 **Purpose**: 项目初始化和基础结构准备
 
-- [ ] T001 更新 .env.example 添加 YouTube 环境变量说明
-- [ ] T002 [P] 创建配置文件示例 config/youtube-channels.json.example
-- [ ] T003 [P] 更新 README.md 添加 YouTube 数据源配置说明
+- [x] T001 更新 .env.example 添加 YouTube 环境变量说明
+- [x] T002 [P] 创建配置文件示例 config/youtube-channels.json.example
+- [x] T003 [P] 更新 README.md 添加 YouTube 数据源配置说明
 
 **Verification**:
 - `.env.example` 包含 `COMPOSIO_CONNECTION_ID_YOUTUBE` 和 `COMPOSIO_USER_ID_YOUTUBE`
@@ -42,10 +42,10 @@
 
 **⚠️ CRITICAL**: 在此阶段完成前,不能开始任何用户故事的工作
 
-- [ ] T004 在 src/config/validators.js 中添加 validateYouTubeChannels() 函数
-- [ ] T005 [P] 在 src/config/datasources.js 中添加 loadYouTubeChannels() 函数
-- [ ] T006 [P] 在 src/config/datasources.js 中添加 YOUTUBE_CONFIG 配置对象
-- [ ] T007 在 src/config/datasources.js 的 getEnabledDataSources() 中注册 YouTube
+- [x] T004 在 src/config/validators.js 中添加 validateYouTubeChannels() 函数
+- [x] T005 [P] 在 src/config/datasources.js 中添加 loadYouTubeChannels() 函数
+- [x] T006 [P] 在 src/config/datasources.js 中添加 YOUTUBE_CONFIG 配置对象
+- [x] T007 在 src/config/datasources.js 的 getEnabledDataSources() 中注册 YouTube
 
 **Verification**:
 - `validateYouTubeChannels()` 能够验证配置文件格式(频道 ID 格式、必填字段)
@@ -76,9 +76,9 @@
 
 ### 辅助工具函数(可并行开发)
 
-- [ ] T008 [P] [US1] 在 src/collectors/youtube.js 中实现 sanitizeVideoText() 工具函数
-- [ ] T009 [P] [US1] 在 src/collectors/youtube.js 中实现 buildVideoUrl() 工具函数
-- [ ] T010 [P] [US1] 在 src/collectors/youtube.js 中实现 clamp() 工具函数
+- [x] T008 [P] [US1] 在 src/collectors/youtube.js 中实现 sanitizeVideoText() 工具函数
+- [x] T009 [P] [US1] 在 src/collectors/youtube.js 中实现 buildVideoUrl() 工具函数
+- [x] T010 [P] [US1] 在 src/collectors/youtube.js 中实现 clamp() 工具函数
 
 **Verification** (T008-T010):
 - `sanitizeVideoText()` 能移除 Emoji、URL、时间戳、HTML 实体,合并空白
@@ -87,11 +87,11 @@
 
 ### 核心采集器类
 
-- [ ] T011 [US1] 创建 YouTubeCollector 类骨架(继承 BaseCollector)在 src/collectors/youtube.js
-- [ ] T012 [US2] 在 collect() 方法中实现环境变量读取和验证逻辑
-- [ ] T013 [US2] 实现环境变量缺失时的优雅降级(记录警告,返回空数组)
-- [ ] T014 [US1] 实现 createSearchPlans() 方法(生成频道采集计划)
-- [ ] T015 [US1] 实现频道 ID 到上传播放列表 ID 的转换逻辑(UC -> UU)
+- [x] T011 [US1] 创建 YouTubeCollector 类骨架(继承 BaseCollector)在 src/collectors/youtube.js
+- [x] T012 [US2] 在 collect() 方法中实现环境变量读取和验证逻辑
+- [x] T013 [US2] 实现环境变量缺失时的优雅降级(记录警告,返回空数组)
+- [x] T014 [US1] 实现 createSearchPlans() 方法(生成频道采集计划)
+- [x] T015 [US1] 实现频道 ID 到上传播放列表 ID 的转换逻辑(UC -> UU)
 
 **Verification** (T011-T015):
 - YouTubeCollector 类可实例化,继承 BaseCollector 的 retryWithBackoff 和 validateNewsItems 方法
@@ -102,11 +102,11 @@
 
 ### API 调用与数据获取
 
-- [ ] T016 [US2] 在 collect() 中初始化 Composio SDK 实例(new Composio({ apiKey }))
-- [ ] T017 [US1] 实现 fetchVideosForPlan() 方法(调用播放列表 API)
-- [ ] T018 [US1] 在 fetchVideosForPlan() 中实现分页逻辑(nextPageToken)
-- [ ] T019 [US1] 实现 batchGetVideoDetails() 方法(批量获取视频详情)
-- [ ] T020 [US1] 在 batchGetVideoDetails() 中实现 videoIds 分组逻辑(每组 50 个)
+- [x] T016 [US2] 在 collect() 中初始化 Composio SDK 实例(new Composio({ apiKey }))
+- [x] T017 [US1] 实现 fetchVideosForPlan() 方法(调用播放列表 API)
+- [x] T018 [US1] 在 fetchVideosForPlan() 中实现分页逻辑(nextPageToken)
+- [x] T019 [US1] 实现 batchGetVideoDetails() 方法(批量获取视频详情)
+- [x] T020 [US1] 在 batchGetVideoDetails() 中实现 videoIds 分组逻辑(每组 50 个)
 
 **Verification** (T016-T020):
 - Composio SDK 使用正确的 apiKey 初始化
@@ -117,13 +117,13 @@
 
 ### 数据转换与验证
 
-- [ ] T021 [US1] 实现 buildNewsItem() 方法(YouTube Video → NewsItem)
-- [ ] T022 [US1] 在 buildNewsItem() 中实现字段映射(id, title, summary, url, source, createdAt)
-- [ ] T023 [US1] 在 buildNewsItem() 中实现 metadata 填充(channelId, viewCount, likeCount 等)
-- [ ] T024 [US1] 在 buildNewsItem() 中实现必填字段验证(无效视频返回 null)
-- [ ] T025 [US1] 在 collect() 中实现去重逻辑(使用 seenVideoIds Set)
-- [ ] T026 [US1] 在 collect() 中集成 partitionByGlobalRecency() 时间窗口过滤
-- [ ] T027 [US1] 在 collect() 中集成 validateNewsItems() 数据验证
+- [x] T021 [US1] 实现 buildNewsItem() 方法(YouTube Video → NewsItem)
+- [x] T022 [US1] 在 buildNewsItem() 中实现字段映射(id, title, summary, url, source, createdAt)
+- [x] T023 [US1] 在 buildNewsItem() 中实现 metadata 填充(channelId, viewCount, likeCount 等)
+- [x] T024 [US1] 在 buildNewsItem() 中实现必填字段验证(无效视频返回 null)
+- [x] T025 [US1] 在 collect() 中实现去重逻辑(使用 seenVideoIds Set)
+- [x] T026 [US1] 在 collect() 中集成 partitionByGlobalRecency() 时间窗口过滤
+- [x] T027 [US1] 在 collect() 中集成 validateNewsItems() 数据验证
 
 **Verification** (T021-T027):
 - buildNewsItem() 返回的对象符合 NewsItem 结构
@@ -136,9 +136,9 @@
 
 ### 集成与测试
 
-- [ ] T028 [US1] 在 src/index.js 中导入 YouTubeCollector
-- [ ] T029 [US1] 创建测试脚本 scripts/youtube-demo.js(参考 twitter-demo.js)
-- [ ] T030 [US1] 执行完整采集流程测试(环境变量配置 → 频道采集 → NewsItem 输出)
+- [x] T028 [US1] 在 src/index.js 中导入 YouTubeCollector
+- [x] T029 [US1] 创建测试脚本 scripts/youtube-demo.js(参考 twitter-demo.js)
+- [x] T030 [US1] 执行完整采集流程测试(环境变量配置 → 频道采集 → NewsItem 输出)
 
 **Verification** (T028-T030):
 - 主程序 `npm start` 能够执行 YouTube 采集并输出日志
@@ -165,10 +165,10 @@
 
 ### 关键词搜索实现
 
-- [ ] T031 [P] [US3] 实现 buildKeywordQuery() 工具函数(组合关键词为查询字符串)
-- [ ] T032 [US3] 在 createSearchPlans() 中添加关键词搜索计划生成逻辑
-- [ ] T033 [US3] 实现 fetchFromSearch() 方法(调用 YOUTUBE_SEARCH_YOU_TUBE)
-- [ ] T034 [US3] 在 fetchVideosForPlan() 中添加 type='keyword' 分支调用 fetchFromSearch()
+- [x] T031 [P] [US3] 实现 buildKeywordQuery() 工具函数(组合关键词为查询字符串)
+- [x] T032 [US3] 在 createSearchPlans() 中添加关键词搜索计划生成逻辑
+- [x] T033 [US3] 实现 fetchVideosForKeyword() 方法(调用 YOUTUBE_SEARCH_VIDEOS)
+- [x] T034 [US3] 在 fetchVideosForPlan() 中添加 type='keyword' 分支调用 fetchVideosForKeyword()
 
 **Verification** (T031-T034):
 - buildKeywordQuery() 将 `["AI", "Machine Learning"]` 转换为 `(AI OR "Machine Learning") -is:live`
@@ -196,10 +196,10 @@
 
 ### 数据清洗增强
 
-- [ ] T035 [P] [US4] 在 sanitizeVideoText() 中添加时间戳移除逻辑(/\b\d{1,2}:\d{2}/)
-- [ ] T036 [P] [US4] 在 sanitizeVideoText() 中添加 URL 移除逻辑(/https?:\/\/[^\s]+/)
-- [ ] T037 [P] [US4] 在 sanitizeVideoText() 中添加 HTML 实体解码逻辑
-- [ ] T038 [US4] 更新 buildNewsItem() 使用增强的 sanitizeVideoText()
+- [x] T035 [P] [US4] 在 sanitizeVideoText() 中添加时间戳移除逻辑(/\b\d{1,2}:\d{2}/)
+- [x] T036 [P] [US4] 在 sanitizeVideoText() 中添加 URL 移除逻辑(/https?:\/\/[^\s]+/)
+- [x] T037 [P] [US4] 在 sanitizeVideoText() 中添加 HTML 实体解码逻辑
+- [x] T038 [US4] 更新 buildNewsItem() 使用增强的 sanitizeVideoText()
 
 **Verification** (T035-T038):
 - `"0:00 引言 3:45 重点"` → `"引言 重点"`
@@ -227,11 +227,11 @@
 
 ### 配置参数支持
 
-- [ ] T039 [P] [US5] 在 createSearchPlans() 中读取 config.maxItemsPerChannel 参数
-- [ ] T040 [P] [US5] 在 fetchVideosForPlan() 中读取 config.maxResultsPerPage 参数
-- [ ] T041 [P] [US5] 在 buildKeywordQuery() 中读取 config.queryPrefix 参数
-- [ ] T042 [P] [US5] 在 createSearchPlans() 中读取 config.defaultLanguages 参数
-- [ ] T043 [US5] 为所有配置参数添加默认值回退逻辑
+- [x] T039 [P] [US5] 在 createSearchPlans() 中读取 config.maxItemsPerChannel 参数
+- [x] T040 [P] [US5] 在 fetchVideosForPlan() 中读取 config.maxResultsPerPage 参数
+- [x] T041 [P] [US5] 实现 buildKeywordQuery() 支持 queryPrefix 参数
+- [x] T042 [P] [US5] 在 createSearchPlans() 中读取 config.defaultLanguage 参数
+- [x] T043 [US5] 为所有配置参数添加默认值回退逻辑
 
 **Verification** (T039-T043):
 - 修改配置文件中的参数能影响实际采集行为
@@ -259,10 +259,10 @@
 
 ### 边缘情况处理
 
-- [ ] T047 [P] 处理 API 返回空结果集的情况(记录调试日志,返回空数组)
-- [ ] T048 [P] 处理视频发布时间缺失或格式错误(跳过或使用当前时间)
-- [ ] T049 [P] 处理频道列表为空且无关键词的情况(记录警告,返回空数组)
-- [ ] T050 [P] 处理单个视频在多查询中重复出现(seenVideoIds 去重)
+- [x] T047 [P] 处理 API 返回空结果集的情况(记录调试日志,返回空数组)
+- [x] T048 [P] 处理视频发布时间缺失或格式错误(跳过或使用当前时间)
+- [x] T049 [P] 处理频道列表为空且无关键词的情况(记录警告,返回空数组)
+- [x] T050 [P] 处理单个视频在多查询中重复出现(seenVideoIds 去重)
 
 **Verification** (T047-T050):
 - API 返回 `{"items": []}` 时不抛出错误
@@ -272,9 +272,9 @@
 
 ### 文档完善
 
-- [ ] T051 [P] 更新 README.md 的"快速开始"部分添加 YouTube 配置步骤
-- [ ] T052 [P] 创建 docs/.env配置/如何接入YouTube.md 文档(参考推特文档)
-- [ ] T053 [P] 在 config/youtube-channels.json.example 中添加详细注释
+- [x] T051 [P] 更新 README.md 的"快速开始"部分添加 YouTube 配置步骤
+- [x] T052 [P] 创建 docs/.env配置/如何接入YouTube.md 文档(参考推特文档)
+- [x] T053 [P] 在 config/youtube-channels.json.example 中添加详细注释
 
 **Verification** (T051-T053):
 - README.md 包含 YouTube 环境变量配置说明和示例配置文件说明

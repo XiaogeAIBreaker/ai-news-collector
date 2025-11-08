@@ -396,3 +396,216 @@ export function validateCollectionWindow(config) {
     errors
   };
 }
+
+/**
+ * 验证 YouTube 频道配置
+ * @param {Object} config - YouTube 配置对象
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+export function validateYouTubeChannels(config) {
+  const errors = [];
+
+  if (typeof config !== 'object' || config === null) {
+    return { valid: false, errors: ['配置必须是对象'] };
+  }
+
+  // 验证频道列表
+  const channels = config.channels;
+  if (channels !== undefined && !Array.isArray(channels)) {
+    errors.push('channels 必须是数组');
+  } else if (Array.isArray(channels)) {
+    channels.forEach((channel, index) => {
+      const prefix = `频道[${index}]`;
+
+      if (typeof channel !== 'object' || channel === null) {
+        errors.push(`${prefix}: 必须是对象`);
+        return;
+      }
+
+      // channelId 必填,按照 data-model.md:65 规范验证
+      if (!channel.channelId || typeof channel.channelId !== 'string' || channel.channelId.trim() === '') {
+        errors.push(`${prefix}: channelId 是必填字段并且必须是非空字符串`);
+      } else if (!/^UC[a-zA-Z0-9_-]{22}$/.test(channel.channelId)) {
+        errors.push(`${prefix}: channelId 必须匹配格式 ^UC[a-zA-Z0-9_-]{22}$`);
+      }
+
+      // displayName 可选,按照 data-model.md:22,66 规范验证
+      if (channel.displayName !== undefined) {
+        if (typeof channel.displayName !== 'string') {
+          errors.push(`${prefix}: displayName 必须是字符串`);
+        } else if (channel.displayName.length < 1 || channel.displayName.length > 100) {
+          errors.push(`${prefix}: displayName 长度必须在 1-100 字符之间`);
+        }
+      }
+
+      // handle 可选,按照 data-model.md:23,67 规范验证
+      if (channel.handle !== undefined) {
+        if (typeof channel.handle !== 'string') {
+          errors.push(`${prefix}: handle 必须是字符串`);
+        } else if (!channel.handle.startsWith('@') || channel.handle.length < 2 || channel.handle.length > 30) {
+          errors.push(`${prefix}: handle 必须以 @ 开头,长度 2-30 字符`);
+        }
+      }
+
+      // enabled 可选,但必须是布尔值
+      if (channel.enabled !== undefined && typeof channel.enabled !== 'boolean') {
+        errors.push(`${prefix}: enabled 必须是布尔值`);
+      }
+
+      // keywords 可选 (频道级关键词过滤),按照 data-model.md:25,68 规范验证
+      if (channel.keywords !== undefined) {
+        if (!Array.isArray(channel.keywords)) {
+          errors.push(`${prefix}: keywords 必须是数组`);
+        } else {
+          channel.keywords.forEach((keyword, kIndex) => {
+            if (typeof keyword !== 'string' || keyword.length < 1 || keyword.length > 50) {
+              errors.push(`${prefix}.keywords[${kIndex}]: 必须是 1-50 字符的字符串`);
+            }
+          });
+        }
+      }
+
+      // languages 可选,按照 data-model.md:26,69 规范验证
+      if (channel.languages !== undefined) {
+        if (!Array.isArray(channel.languages)) {
+          errors.push(`${prefix}: languages 必须是数组`);
+        } else {
+          channel.languages.forEach((lang, lIndex) => {
+            // ISO 639-1 代码验证 (2 个字母)
+            if (typeof lang !== 'string' || !/^[a-z]{2}$/.test(lang)) {
+              errors.push(`${prefix}.languages[${lIndex}]: 必须是有效的 ISO 639-1 代码 (如 "zh", "en")`);
+            }
+          });
+        }
+      }
+
+      // tags 可选,按照 data-model.md:27,70 规范验证
+      if (channel.tags !== undefined) {
+        if (!Array.isArray(channel.tags)) {
+          errors.push(`${prefix}: tags 必须是数组`);
+        } else if (channel.tags.length > 10) {
+          errors.push(`${prefix}: tags 最多 10 个元素`);
+        } else {
+          channel.tags.forEach((tag, tIndex) => {
+            if (typeof tag !== 'string' || tag.length < 1 || tag.length > 30) {
+              errors.push(`${prefix}.tags[${tIndex}]: 必须是 1-30 字符的字符串`);
+            }
+          });
+        }
+      }
+
+      // maxItemsPerChannel 可选,但必须是正整数
+      if (channel.maxItemsPerChannel !== undefined) {
+        if (typeof channel.maxItemsPerChannel !== 'number' ||
+            channel.maxItemsPerChannel < 1 ||
+            channel.maxItemsPerChannel > 100) {
+          errors.push(`${prefix}: maxItemsPerChannel 必须是 1-100 之间的数字`);
+        }
+      }
+    });
+  }
+
+  // 验证关键词列表 (字符串数组格式,符合 data-model.md 规范)
+  if (config.keywords !== undefined) {
+    if (!Array.isArray(config.keywords)) {
+      errors.push('keywords 必须是数组');
+    } else {
+      config.keywords.forEach((keyword, index) => {
+        const prefix = `关键词[${index}]`;
+
+        // 支持字符串数组格式 (per data-model.md)
+        if (typeof keyword !== 'string' || keyword.trim() === '') {
+          errors.push(`${prefix}: 必须是非空字符串`);
+        }
+      });
+    }
+  }
+
+  // 验证全局配置
+  const globalConfig = config.config;
+  if (globalConfig !== undefined) {
+    if (typeof globalConfig !== 'object' || globalConfig === null) {
+      errors.push('config 必须是对象');
+    } else {
+      // recentDays 可选,但必须是正整数
+      if (globalConfig.recentDays !== undefined) {
+        if (typeof globalConfig.recentDays !== 'number' ||
+            globalConfig.recentDays < 1 ||
+            globalConfig.recentDays > 30) {
+          errors.push('config.recentDays 必须是 1-30 之间的数字');
+        }
+      }
+
+      // defaultMaxItemsPerChannel 可选
+      if (globalConfig.defaultMaxItemsPerChannel !== undefined) {
+        if (typeof globalConfig.defaultMaxItemsPerChannel !== 'number' ||
+            globalConfig.defaultMaxItemsPerChannel < 1 ||
+            globalConfig.defaultMaxItemsPerChannel > 100) {
+          errors.push('config.defaultMaxItemsPerChannel 必须是 1-100 之间的数字');
+        }
+      }
+
+      // defaultMaxResultsPerKeyword 可选
+      if (globalConfig.defaultMaxResultsPerKeyword !== undefined) {
+        if (typeof globalConfig.defaultMaxResultsPerKeyword !== 'number' ||
+            globalConfig.defaultMaxResultsPerKeyword < 1 ||
+            globalConfig.defaultMaxResultsPerKeyword > 50) {
+          errors.push('config.defaultMaxResultsPerKeyword 必须是 1-50 之间的数字');
+        }
+      }
+
+      // defaultLanguage 可选 (单个语言)
+      if (globalConfig.defaultLanguage && typeof globalConfig.defaultLanguage !== 'string') {
+        errors.push('config.defaultLanguage 必须是字符串');
+      }
+
+      // defaultLanguages 可选 (多个语言数组,符合 T042 规范)
+      if (globalConfig.defaultLanguages !== undefined) {
+        if (!Array.isArray(globalConfig.defaultLanguages)) {
+          errors.push('config.defaultLanguages 必须是数组');
+        } else {
+          globalConfig.defaultLanguages.forEach((lang, index) => {
+            if (typeof lang !== 'string' || lang.trim() === '') {
+              errors.push(`config.defaultLanguages[${index}] 必须是非空字符串`);
+            }
+          });
+        }
+      }
+
+      // enableKeywordSearch 可选
+      if (globalConfig.enableKeywordSearch !== undefined &&
+          typeof globalConfig.enableKeywordSearch !== 'boolean') {
+        errors.push('config.enableKeywordSearch 必须是布尔值');
+      }
+
+      // batchSize 可选
+      if (globalConfig.batchSize !== undefined) {
+        if (typeof globalConfig.batchSize !== 'number' ||
+            globalConfig.batchSize < 1 ||
+            globalConfig.batchSize > 50) {
+          errors.push('config.batchSize 必须是 1-50 之间的数字');
+        }
+      }
+
+      // enableStatistics 可选
+      if (globalConfig.enableStatistics !== undefined &&
+          typeof globalConfig.enableStatistics !== 'boolean') {
+        errors.push('config.enableStatistics 必须是布尔值');
+      }
+
+      // maxResultsPerPage 可选 (FR-010)
+      if (globalConfig.maxResultsPerPage !== undefined) {
+        if (typeof globalConfig.maxResultsPerPage !== 'number' ||
+            globalConfig.maxResultsPerPage < 1 ||
+            globalConfig.maxResultsPerPage > 50) {
+          errors.push('config.maxResultsPerPage 必须是 1-50 之间的数字');
+        }
+      }
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+}

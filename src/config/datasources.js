@@ -4,7 +4,7 @@
  */
 
 import { configLoader } from './config-loader.js';
-import { validateWeChatAccounts, validateZSXQGroups, validateTwitterAccounts } from './validators.js';
+import { validateWeChatAccounts, validateZSXQGroups, validateTwitterAccounts, validateYouTubeChannels } from './validators.js';
 import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger('DataSources');
@@ -150,6 +150,42 @@ function loadTwitterAccounts() {
 }
 
 /**
+ * 加载 YouTube 频道配置
+ * @returns {{ channels: Array, keywords: Array, config: Object }}
+ */
+function loadYouTubeChannels() {
+  const defaultSettings = {
+    channels: [],
+    keywords: [],
+    config: {}
+  };
+
+  try {
+    const settings = configLoader.loadAndValidate(
+      'config/youtube-channels.json',
+      validateYouTubeChannels,
+      { required: false, defaultValue: defaultSettings }
+    ) || defaultSettings;
+
+    const channels = Array.isArray(settings.channels) ? settings.channels : [];
+    if (channels.length > 0) {
+      logger.info(`加载了 ${channels.length} 个 YouTube 频道配置`);
+    } else {
+      logger.warn('未配置 YouTube 频道');
+    }
+
+    return {
+      channels,
+      keywords: Array.isArray(settings.keywords) ? settings.keywords : [],
+      config: typeof settings.config === 'object' && settings.config !== null ? settings.config : {}
+    };
+  } catch (error) {
+    logger.error(`加载 YouTube 配置失败: ${error.message}`);
+    return defaultSettings;
+  }
+}
+
+/**
  * 微信公众号 MP 数据源配置
  */
 export const WECHAT_MP_CONFIG = {
@@ -188,6 +224,22 @@ export const TWITTER_CONFIG = {
 };
 
 /**
+ * YouTube 数据源配置
+ */
+export const YOUTUBE_CONFIG = {
+  name: 'YouTube',
+  type: 'api',
+  enabled: true,
+  maxItems: 50,
+  timeout: 30000,
+  config: {
+    get settings() {
+      return loadYouTubeChannels();
+    }
+  }
+};
+
+/**
  * 获取所有启用的数据源配置
  * @returns {Array<Object>} 启用的数据源配置数组
  */
@@ -197,6 +249,7 @@ export function getEnabledDataSources() {
     WECHAT_MP_CONFIG,
     TWITTER_CONFIG,
     AIBASE_CONFIG,
+    YOUTUBE_CONFIG,
   ];
 
   const enabled = allSources.filter(source => source.enabled);
