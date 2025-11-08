@@ -15,7 +15,7 @@
 
 ## 🤔 干啥的？
 
-公众号、知识星球、各大资讯站（[AIBase](https://www.aibase.com/zh)）、特推...
+公众号、知识星球、各大资讯站（[AIBase](https://www.aibase.com/zh)）、特推、YouTube...
 
 信息量爆炸？一条条刷？低质量营销号？没时间？漏消息？...
 
@@ -31,7 +31,7 @@
 - ✅ **低成本**: 使用 DeepSeek API，每次运行约 几毛钱
 - ✅ **完整日志**: 彩色日志输出,清晰展示采集和过滤进度
 - ✅ **按源分组**: Markdown 报告按数据源分组展示
-- ✅ **统一时间窗口**: 可自行选择采集n天的数据
+- ✅ **统一时间窗口**: 可自行选择采集 n 天的数据
 
 ## ⚡️ 快速开始
 
@@ -69,11 +69,12 @@ WECHAT_COOKIE='xxxxxxxxxxx'
 ZSXQ_COOKIE='xxxxxxxxxxx'
 
 COMPOSIO_API_KEY=xxxxxxxxx
+
 COMPOSIO_CONNECTION_ID_TWITTER=xxxxxxxxx
 COMPOSIO_USER_ID_TWITTER=xxxxxxxxx
 
-COMPOSIO_CONNECTION_ID_YOUTUBE=ca_xxxxxx
-COMPOSIO_USER_ID_YOUTUBE=pg-test-xxxxxx
+COMPOSIO_CONNECTION_ID_YOUTUBE=xxxxxxxxx
+COMPOSIO_USER_ID_YOUTUBE=xxxxxxxxx
 ```
 
 如何配置请见👇
@@ -134,7 +135,7 @@ npm start
 
 📄 **输出示例**
 
-[采集输出示例文档](/docs/filtered-news-20251106-192811.md)
+[采集输出示例文档](/docs/filtered-news-20251108-142113.md)
 
 | 输出文档局部展示一 | 输出文档局部展示二 |
 |------|------|

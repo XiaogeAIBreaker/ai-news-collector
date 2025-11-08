@@ -1,144 +1,92 @@
-# 如何接入 YouTube
+# 如何接入Youtube
 
-本文档介绍如何配置 YouTube 数据源,以便采集 YouTube 视频内容。
+## 📋 准备工作
 
-## 前置条件
+1. **网络环境**: 可以访问[https://youtube.com](https://youtube.com)的网络环境
+2. **Youtube账号**: Youtube账号
 
-- Node.js 18+ 已安装
-- 已注册 [Composio](https://composio.dev) 账号
-- 拥有 YouTube/Google 账号
+---
 
-## 配置步骤
+## 🔧 详细步骤
 
-### 1. 获取 Composio API Key
+推特获取基于[Composio](https://platform.composio.dev/)
 
-1. 访问 [Composio Dashboard](https://app.composio.dev)
-2. 登录您的账号
-3. 进入 **API Keys** 页面
-4. 创建新的 API Key 或复制现有的 Key
-5. 将 Key 保存到 `.env` 文件:
+### 步骤 1: 登录注册Composio
+
+打开浏览器,访问 [https://platform.composio.dev](https://platform.composio.dev)
+
+### 步骤 2: 新建Project并进入(若已有Project则可跳过此步骤)
+
+![](https://cdn.ziliu.online/images/2025/11/902e0d6c-1acc-43eb-bdd0-556592a444ce.jpg)
+
+### 步骤 3: 获取API_KEY
+
+切到"Settings"下，创建API_KEY并复制
+
+![](https://cdn.ziliu.online/images/2025/11/bf58c767-6b16-4aa5-ac82-04c2562872e4.jpg)
+
+### 步骤 4: 切到"Auth Configs"
+
+切到"Auth Configs",点击「Create Auth Config」按钮
+
+![](https://cdn.ziliu.online/images/2025/11/d2944bdd-0021-4038-bc20-71021460b898.jpg)
+   
+### 步骤 5: 搜索"youtube"
+
+在过滤框中搜索"youtube"，并点击
+
+![](https://cdn.ziliu.online/images/2025/11/614b0994-c351-4374-9a66-734e99c40bbe.jpg)
+
+### 步骤 6: 点击创建
+
+如图，点击创建
+
+![](https://cdn.ziliu.online/images/2025/11/67aacdac-f647-46db-8efe-0dbe7a77a67d.jpg)
+
+### 步骤 7: 链接你的账号
+
+点击「Connect Account」
+
+![](https://cdn.ziliu.online/images/2025/11/36a721ed-8d07-4d2a-81ee-87b2dff82339.jpg)
+
+### 步骤 8: 保存COMPOSIO_USER_ID_YOUTUBE
+
+这就是COMPOSIO_USER_ID_YOUTUBE，保存下，然后点击连接
+
+![](https://cdn.ziliu.online/images/2025/11/a388789e-151b-41eb-a3ab-8b270beca782.jpg)
+
+### 步骤 9: 继续
+
+点击继续
+
+![](https://cdn.ziliu.online/images/2025/11/ff09cbba-ab4a-4e7a-8327-289052ea06dc.jpg)
+
+### 步骤 10: 确认授权
+
+按照指引，完成授权流程授权
+
+### 步骤 11: 授权成功
+
+授权成功后会显示该界面
+
+![](https://cdn.ziliu.online/images/2025/11/90097271-0ad2-4ced-b0ff-514c4cfbdf6a.jpg)
+
+### 步骤 12: 获取COMPOSIO_CONNECTION_ID_TWITTER
+
+回到控制台，此时记录中会多出一条
+
+![](https://cdn.ziliu.online/images/2025/11/9a6c3998-39e9-4f49-bc8b-75b208654d2c.jpg)
+
+---
+
+## 💾 保存到配置文件
+
+### 添加配置
+
+在 `.env` 文件中配置:
 
 ```bash
-COMPOSIO_API_KEY=your_composio_api_key_here
+COMPOSIO_API_KEY=步骤3中获取
+COMPOSIO_CONNECTION_ID_YOUTUBE=步骤8中获取 或 步骤12中也可获取
+COMPOSIO_USER_ID_YOUTUBE=步骤12中获取
 ```
-
-### 2. 连接 YouTube 账号
-
-#### 方法一: 使用 Composio CLI (推荐)
-
-1. 安装 Composio CLI:
-
-```bash
-npm install -g composio-core
-```
-
-2. 登录 Composio:
-
-```bash
-composio login
-```
-
-3. 添加 YouTube 集成:
-
-```bash
-composio add youtube
-```
-
-这会打开浏览器进行 OAuth 授权。授权成功后,CLI 会显示:
-- `Connection ID` (格式: `ca_xxxxx`)
-- `User ID` / `Entity ID` (格式: `pg-test-xxxxx`)
-
-4. 将这些值添加到 `.env` 文件:
-
-```bash
-COMPOSIO_CONNECTION_ID_YOUTUBE=ca_xxxxx
-COMPOSIO_USER_ID_YOUTUBE=pg-test-xxxxx
-```
-
-#### 方法二: 使用 Composio Dashboard
-
-1. 访问 [Composio Dashboard](https://app.composio.dev)
-2. 进入 **Integrations** → **YouTube**
-3. 点击 **Connect** 并完成 OAuth 授权
-4. 授权成功后,在 **Connections** 页面找到您的连接
-5. 复制 `Connection ID` 和 `Entity ID`,添加到 `.env` 文件
-
-### 3. 验证配置
-
-在项目根目录运行测试脚本:
-
-```bash
-node scripts/youtube-demo.js
-```
-
-如果配置正确,您应该看到类似输出:
-
-```
-✅ YouTube 连接成功
-📊 采集到 5 条视频
-```
-
-## 环境变量说明
-
-在 `.env` 文件中配置以下变量:
-
-```bash
-# Composio API Key (必填)
-COMPOSIO_API_KEY=xxxxxxxxxxxxx
-
-# YouTube 连接 ID (必填,格式: ca_xxxxx)
-COMPOSIO_CONNECTION_ID_YOUTUBE=ca_xxxxx
-
-# YouTube 用户 ID (必填,格式: pg-test-xxxxx 或 default)
-COMPOSIO_USER_ID_YOUTUBE=pg-test-xxxxx
-```
-
-## 常见问题
-
-### Q1: 如何找到 YouTube 频道 ID?
-
-**方法一**: 从频道 URL 获取
-- 访问频道主页
-- URL 格式为 `https://www.youtube.com/channel/UCxxxxxx`
-- `UCxxxxxx` 就是频道 ID
-
-**方法二**: 使用频道 @ 句柄查找
-- 访问 `https://www.youtube.com/@channelhandle/about`
-- 在页面源代码中搜索 `channelId` 或 `externalId`
-
-**方法三**: 使用第三方工具
-- 访问 [commentpicker.com/youtube-channel-id.php](https://commentpicker.com/youtube-channel-id.php)
-- 输入频道 URL 或名称即可获取
-
-### Q2: 授权失败怎么办?
-
-1. 确保您的 Google 账号已登录
-2. 检查 Composio API Key 是否正确
-3. 尝试清除浏览器缓存后重新授权
-4. 如果使用企业 Google 账号,确保管理员允许第三方应用访问
-
-### Q3: 配额限制是多少?
-
-YouTube Data API v3 有以下配额限制:
-- 每天 10,000 配额单位
-- 搜索操作消耗 100 单位
-- 视频详情操作消耗 1 单位(批量最多 50 个)
-
-本采集器已优化为批量获取(每批 50 个视频),最大化配额利用率。
-
-### Q4: 如何配置关注的频道?
-
-参见: [如何配置关注的YouTube频道](../关注配置/YouTube.md)
-
-## 下一步
-
-配置完成后,您可以:
-
-1. [配置要关注的 YouTube 频道](../关注配置/YouTube.md)
-2. [运行完整采集流程](../../README.md#7-运行程序)
-
-## 相关链接
-
-- [Composio 官方文档](https://docs.composio.dev)
-- [YouTube Data API 文档](https://developers.google.com/youtube/v3)
-- [YouTube API 配额计算器](https://developers.google.com/youtube/v3/determine_quota_cost)

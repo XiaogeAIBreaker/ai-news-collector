@@ -3,16 +3,14 @@
     {
       "channelId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
       "name": "Google for Developers",
-      "enabled": true,
       "maxItemsPerChannel": 5
     }
   ],
   "keywords": [],
   "config": {
-    "recentDays": 7,
     "maxResultsPerKeyword": 5,
     "maxResultsPerPage": 50,
-    "defaultLanguages": ["en"],
+    "defaultLanguages": ["en", "zh"],
     "queryPrefix": "-is:live"
   }
 }
